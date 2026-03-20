@@ -1,12 +1,12 @@
 import os
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from src.graph.state import GameState
 
 
 async def hr_agent(state: GameState) -> dict:
     llm = ChatOpenAI(
-        model="gpt-4o-mini",
+        model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
         streaming=True,
         api_key=os.environ["OPENAI_API_KEY"],
     )
@@ -26,7 +26,11 @@ async def hr_agent(state: GameState) -> dict:
         "Bądź profesjonalny i empatyczny. Zadawaj jedno pytanie na raz."
     )
 
-    messages = [SystemMessage(content=system_content)] + state["messages"]
+    history = state.get("messages") or []
+    if not history:
+        history = [HumanMessage(content="Rozpocznij rozmowę — przedstaw się i zadaj pierwsze pytanie.")]
+
+    messages = [SystemMessage(content=system_content)] + history
     response = await llm.ainvoke(messages)
 
     return {

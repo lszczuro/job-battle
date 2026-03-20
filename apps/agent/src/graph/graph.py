@@ -20,6 +20,18 @@ def route_start(state: GameState) -> str:
     stage = state.get("current_stage", "offer_selection")
     if stage == "offer_selection":
         return "generate_offers"
+    if stage == "hr":
+        # First turn: no previous answer to evaluate, go straight to hr_agent
+        # Subsequent turns: evaluate previous answer first
+        turn_count = state.get("turn_count", 0)
+        if turn_count == 0:
+            return "hr_agent"
+        return "evaluate_hr"
+    if stage == "tech":
+        turn_count = state.get("turn_count", 0)
+        if turn_count == 0:
+            return "tech_agent"
+        return "evaluate_tech"
     return "hr_agent"
 
 
@@ -35,10 +47,20 @@ graph.add_node("evaluate_tech", evaluate_tech)
 graph.add_node("final_report", final_report)
 
 # Edges
-graph.add_conditional_edges(START, route_start, {"generate_offers": "generate_offers", "hr_agent": "hr_agent"})
+graph.add_conditional_edges(
+    START,
+    route_start,
+    {
+        "generate_offers": "generate_offers",
+        "hr_agent": "hr_agent",
+        "evaluate_hr": "evaluate_hr",
+        "tech_agent": "tech_agent",
+        "evaluate_tech": "evaluate_tech",
+    },
+)
 graph.add_edge("generate_offers", END)
-graph.add_edge("hr_agent", "evaluate_hr")
 
+# HR: evaluate → route → ask next question OR end stage
 graph.add_conditional_edges(
     "evaluate_hr",
     route_evaluate_hr,
@@ -48,9 +70,9 @@ graph.add_conditional_edges(
         "fail": "final_report",
     },
 )
+graph.add_edge("hr_agent", END)
 
-graph.add_edge("tech_agent", "evaluate_tech")
-
+# Tech: evaluate → route → ask next question OR end stage
 graph.add_conditional_edges(
     "evaluate_tech",
     route_evaluate_tech,
@@ -60,12 +82,11 @@ graph.add_conditional_edges(
         "continue": "tech_agent",
     },
 )
+graph.add_edge("tech_agent", END)
 
 graph.add_edge("final_report", END)
 
-# Compile
-app = graph.compile(
-    interrupt_after=["hr_agent", "tech_agent"],
-)
+# No interrupt_after needed — CopilotKit handles the user-turn boundary externally
+app = graph.compile()
 
 game_graph = app

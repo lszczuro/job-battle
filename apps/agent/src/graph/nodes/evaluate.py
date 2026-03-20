@@ -4,46 +4,29 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, AIMessage, RemoveMessage
 from src.graph.state import GameState
 
-HEADHUNTER_PROMPT = """\
-Jesteś headhunterem który właśnie przeprowadził rozmowę z kandydatem na {target_role} w {company_name}.
-
-Oceń ostatnią odpowiedź kandydata.
-Dodatkowo napisz krótkie podsumowanie kandydata dla następnego rekrutera \
-(max 3 zdania, rzeczowe, bez ozdób). To jest wewnętrzna notatka — kandydat jej nie widzi.
-
-Zwróć TYLKO JSON:
-{{
-  "score": int (1-10),
-  "feedback": str (1 zdanie co poszło dobrze/źle),
-  "decision": "pass" | "fail" | "continue",
-  "headhunter_summary": str (2-3 zdania: profil kandydata, kluczowe umiejętności, wrażenie z rozmowy)
-}}
-
-"continue" jeśli potrzebujesz więcej informacji.
-"pass" jeśli kandydat kwalifikuje się do rozmowy HR.
-"fail" jeśli kandydat odpada.
-Bądź wymagający — nie każdy powinien przechodzić.\
-"""
-
 HR_PROMPT = """\
 Jesteś HR managerem który właśnie przeprowadził rozmowę z kandydatem na {target_role} w {company_name}.
 
 Oceń ostatnią odpowiedź kandydata.
+Liczba tur rozmowy dotychczas: {turn_count}
+
 Dodatkowo napisz krótkie podsumowanie dla technical interviewera \
 (max 3 zdania, rzeczowe). To jest wewnętrzna notatka — kandydat jej nie widzi.
 
 Zwróć TYLKO JSON:
 {{
-  "score": int (1-10),
+  "score": int (1-100),
   "feedback": str (1 zdanie co poszło dobrze/źle),
   "decision": "pass" | "fail" | "continue",
   "hr_summary": str (2-3 zdania: dopasowanie kulturowe, motywacja, red flagi lub plusy)
 }}
 
-"continue" jeśli potrzebujesz więcej informacji.
-"pass" jeśli kandydat kwalifikuje się do rozmowy technicznej.
-"fail" jeśli kandydat odpada.
-Bądź wymagający — nie każdy powinien przechodzić.\
+Zasady decyzji (BEZWZGLĘDNE — musisz ich przestrzegać):
+- Jeśli liczba tur jest większa niż 5: ZAWSZE "fail".
+- Jeśli score <= 40: ZAWSZE "fail". Nie ma wyjątków.
+- Jeśli score >= 70: "pass".
+- Jeśli score 41-69: "continue" (potrzebujesz jeszcze jednego pytania).
+NIGDY nie zwracaj "continue" gdy score <= 40. To jest błąd logiczny.\
 """
 
 TECH_PROMPT = """\
@@ -67,9 +50,9 @@ Bądź wymagający.\
 
 def _make_llm():
     return ChatOpenAI(
-        model="gpt-4o-mini",
-        temperature=0.1,
+        model="gpt-5-nano",
         model_kwargs={"response_format": {"type": "json_object"}},
+        reasoning_effort="minimal",
         api_key=os.environ["OPENAI_API_KEY"],
     )
 
@@ -78,49 +61,33 @@ def _clear_messages(state: GameState) -> list:
     return [RemoveMessage(id=m.id) for m in state["messages"]]
 
 
-async def evaluate_headhunter(state: GameState) -> dict:
-    llm = _make_llm()
-    system = HEADHUNTER_PROMPT.format(
-        target_role=state.get("target_role") or "kandydata",
-        company_name=state.get("company_name") or "nieznanej firmy",
-    )
-    response = await llm.ainvoke([SystemMessage(content=system)] + state["messages"])
-    result = json.loads(response.content)
-
-    updates = {
-        "headhunter_score": result["score"],
-        "headhunter_feedback": result["feedback"],
-        "decision": result["decision"],
-        "headhunter_summary": result.get("headhunter_summary"),
-    }
-
-    if result["decision"] == "pass":
-        transition_msg = AIMessage(
-            content=(
-                "Gratulacje! Twój profil bardzo nas zainteresował. "
-                "Przekazuję Cię teraz do naszego HR Managera — kolejny etap to rozmowa "
-                "o kulturze pracy i Twojej motywacji. Napisz coś aby kontynuować. Powodzenia! 🎉"
-            )
-        )
-        updates["messages"] = _clear_messages(state) + [transition_msg]
-        updates["current_stage"] = "hr"
-
-    return updates
-
-
 async def evaluate_hr(state: GameState) -> dict:
     llm = _make_llm()
+    turn_count = state.get("turn_count", 0)
     system = HR_PROMPT.format(
         target_role=state.get("target_role") or "kandydata",
         company_name=state.get("company_name") or "nieznanej firmy",
+        turn_count=turn_count,
     )
-    response = await llm.ainvoke([SystemMessage(content=system)] + state["messages"])
+    messages = state["messages"]
+    response = await llm.ainvoke(
+        [SystemMessage(content=system)] + messages,
+        config={"callbacks": []},
+    )
     result = json.loads(response.content)
 
+    # Enforce hard rules regardless of LLM decision
+    score = result["score"]
+    decision = result["decision"]
+    if turn_count > 5 or score <= 40:
+        decision = "fail"
+    elif score >= 70 and decision != "fail":
+        decision = "pass"
+
     updates = {
-        "hr_score": result["score"],
+        "hr_score": score,
         "hr_feedback": result["feedback"],
-        "decision": result["decision"],
+        "decision": decision,
         "hr_summary": result.get("hr_summary"),
     }
 
@@ -144,7 +111,10 @@ async def evaluate_tech(state: GameState) -> dict:
         target_role=state.get("target_role") or "kandydata",
         company_name=state.get("company_name") or "nieznanej firmy",
     )
-    response = await llm.ainvoke([SystemMessage(content=system)] + state["messages"])
+    response = await llm.ainvoke(
+        [SystemMessage(content=system)] + state["messages"],
+        config={"callbacks": []},
+    )
     result = json.loads(response.content)
 
     updates = {

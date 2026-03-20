@@ -6,8 +6,9 @@ from src.graph.state import GameState
 
 async def tech_agent(state: GameState) -> dict:
     llm = ChatOpenAI(
-        model="gpt-4o-mini",
+        model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
         streaming=True,
+        reasoning_effort="minimal",
         api_key=os.environ["OPENAI_API_KEY"],
     )
 
