@@ -3,32 +3,41 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
 
+class OfferCard(TypedDict):
+    id: str
+    company_name: str
+    target_role: str
+    company_vibe: str
+    offered_salary: str
+    emoji: str
+    tech_stack: list[str]
+
+
 class GameState(TypedDict):
     # Wymagane przez CopilotKit — aktywna rozmowa bieżącego etapu
     messages: Annotated[list[BaseMessage], add_messages]
 
+    # Ekran wyboru oferty
+    available_offers: list[OfferCard]
+    user_preference: str | None
+    selected_offer: OfferCard | None
+
     # Podsumowania przekazywane między etapami
-    headhunter_summary: str | None
     hr_summary: str | None
 
-    # Profil gracza (budowany przez headhuntera)
-    player_name: str | None
+    # Profil gracza (wybrany z karteczki)
     player_current_role: str | None
-    player_years_exp: int | None
     player_skills: list[str]
-    player_salary_expectation: str | None
 
-    # Oferta (generowana przez generate_offer)
+    # Wybrana oferta (kopiowane z selected_offer dla wygody)
     company_name: str | None
     target_role: str | None
     company_vibe: str | None
     offered_salary: str | None
 
     # Ukryte oceny (niewidoczne dla gracza)
-    headhunter_score: int | None
     hr_score: int | None
     tech_score: int | None
-    headhunter_feedback: str | None
     hr_feedback: str | None
     tech_feedback: str | None
 
@@ -39,6 +48,6 @@ class GameState(TypedDict):
     final_summary: str | None
 
     # Kontrola przepływu
-    current_stage: Literal["headhunter", "hr", "tech", "rejected", "offer"]
+    current_stage: Literal["offer_selection", "hr", "tech", "rejected", "offer"]
     turn_count: int
     game_over: bool

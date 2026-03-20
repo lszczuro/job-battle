@@ -11,12 +11,18 @@ async def hr_agent(state: GameState) -> dict:
         api_key=os.environ["OPENAI_API_KEY"],
     )
 
-    summary_context = state.get("headhunter_summary") or "Brak podsumowania od headhuntera."
+    selected = state.get("selected_offer") or {}
+    role = state.get("target_role") or selected.get("target_role") or "nieznane stanowisko"
+    company = state.get("company_name") or selected.get("company_name") or "firma"
+    vibe = state.get("company_vibe") or selected.get("company_vibe") or ""
+    salary = state.get("offered_salary") or selected.get("offered_salary") or ""
 
     system_content = (
         "Jesteś doświadczonym HR Managerem w polskiej firmie tech.\n"
         "Przeprowadzasz rozmowę HR z kandydatem.\n\n"
-        f"Notatka od headhuntera (poufna):\n{summary_context}\n\n"
+        f"Stanowisko: {role} w {company}\n"
+        f"Firma: {vibe}\n"
+        f"Widełki: {salary}\n\n"
         "Twoje zadanie: oceń dopasowanie kulturowe i miękkie kompetencje.\n"
         "Pytaj o: motywację, pracę zespołową, oczekiwania dot. kultury pracy,\n"
         "sposoby radzenia sobie z wyzwaniami, plany zawodowe.\n"

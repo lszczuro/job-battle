@@ -20,10 +20,7 @@ async def final_report(state: GameState) -> dict:
     )
 
     summary_input = (
-        f"Kandydat: {state.get('player_name') or 'nieznany'}\n"
         f"Stanowisko: {state.get('target_role') or 'nieznane'} w {state.get('company_name') or 'nieznanej firmie'}\n\n"
-        f"Headhunter — ocena: {state.get('headhunter_score')}/10, "
-        f"feedback: {state.get('headhunter_feedback')}\n"
         f"HR — ocena: {state.get('hr_score')}/10, "
         f"feedback: {state.get('hr_feedback')}\n"
         f"Tech — ocena: {state.get('tech_score')}/10, "
