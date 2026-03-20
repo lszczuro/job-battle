@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -723,7 +723,7 @@ wheels = [
 
 [[package]]
 name = "langgraph-api"
-version = "0.7.70"
+version = "0.7.81"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cloudpickle" },
@@ -754,9 +754,9 @@ dependencies = [
     { name = "uvicorn" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/c9/af7bf0318470fcd1e7cc8325a427d90baac42d97bb978c425db60b424aa0/langgraph_api-0.7.70.tar.gz", hash = "sha256:a6523eae73bedc2c05591b9ace12447d92925df8a7a252fced793555672ebe15", size = 631963, upload-time = "2026-03-11T19:22:18.194Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/28/a6/ca5e92d00f3bd06374b7e0441e8dc6925bd7f16eea3e2c89f1781ce0a7d8/langgraph_api-0.7.81.tar.gz", hash = "sha256:d6af67065c90e54061c62df2dcc01066085072846666ceb12ef5a3072fc998f4", size = 638169, upload-time = "2026-03-19T19:34:11.994Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/41/4685bc493ece665e6bb26bec14d3c811584200b670854f491dc9fb246cb8/langgraph_api-0.7.70-py3-none-any.whl", hash = "sha256:4f7a4f8e49066fbbdf7ddbc9ab58375a1eb95ebbf19f6e54db38f9522790d391", size = 529694, upload-time = "2026-03-11T19:22:16.704Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/cc/51a3da99b4a02569f82025acad0fc226bc57b7e3b55a7ad254500c65a628/langgraph_api-0.7.81-py3-none-any.whl", hash = "sha256:0aba1aa805588336fe66a2e4bb8875bd705518849746694b6132fa942fa0213e", size = 534096, upload-time = "2026-03-19T19:34:10.518Z" },
 ]
 
 [[package]]
@@ -1410,7 +1410,7 @@ requires-dist = [
     { name = "langchain-anthropic", specifier = ">=1.3.4" },
     { name = "langchain-openai", specifier = ">=1.1.0" },
     { name = "langgraph", specifier = "==1.0.5" },
-    { name = "langgraph-api", specifier = ">=0.7.70" },
+    { name = "langgraph-api", specifier = ">=0.7.81" },
     { name = "langgraph-cli", extras = ["inmem"], specifier = ">=0.4.11" },
     { name = "langsmith", specifier = ">=0.4.49" },
     { name = "openai", specifier = ">=1.68.2,<2.0.0" },
