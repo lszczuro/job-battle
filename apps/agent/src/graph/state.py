@@ -8,7 +8,6 @@ class OfferCard(TypedDict):
     company_name: str
     target_role: str
     company_vibe: str
-    offered_salary: str
     emoji: str
     tech_stack: list[str]
 
@@ -25,15 +24,10 @@ class GameState(TypedDict):
     # Podsumowania przekazywane między etapami
     hr_summary: str | None
 
-    # Profil gracza (wybrany z karteczki)
-    player_current_role: str | None
-    player_skills: list[str]
-
     # Wybrana oferta (kopiowane z selected_offer dla wygody)
     company_name: str | None
     target_role: str | None
     company_vibe: str | None
-    offered_salary: str | None
 
     # Ukryte oceny (niewidoczne dla gracza)
     hr_score: int | None

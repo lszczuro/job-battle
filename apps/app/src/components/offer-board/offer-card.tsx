@@ -5,7 +5,6 @@ export interface OfferCard {
   company_name: string;
   target_role: string;
   company_vibe: string;
-  offered_salary: string;
   emoji: string;
   tech_stack: string[];
 }
@@ -63,11 +62,6 @@ export function OfferCardItem({ card, index, onSelect, isLoading }: OfferCardPro
 
       {/* Vibe */}
       <p className="text-gray-500 text-xs leading-tight mb-3">{card.company_vibe}</p>
-
-      {/* Salary */}
-      <div className="bg-white/60 rounded px-2 py-1 mb-3">
-        <p className="text-gray-700 text-xs font-medium">{card.offered_salary}</p>
-      </div>
 
       {/* Tech stack tags */}
       <div className="flex flex-wrap gap-1">

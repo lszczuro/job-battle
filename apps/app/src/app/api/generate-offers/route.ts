@@ -1,53 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const SYSTEM_PROMPT = `Jesteś generatorem ofert pracy w polskiej branży IT.
-Na podstawie preferencji użytkownika wygeneruj DOKŁADNIE 5 ofert pracy.
-Każda oferta powinna być realistyczna, fikcyjna i dopasowana do podanych preferencji.
-Zwróć TYLKO JSON object z kluczem "offers" zawierającym array 5 obiektów:
-{
-  "offers": [
-    {
-      "id": "unikalny-id",
-      "company_name": "nazwa fikcyjnej polskiej firmy tech",
-      "target_role": "konkretne stanowisko",
-      "company_vibe": "krótki opis: typ firmy, branża, miasto, wielkość",
-      "offered_salary": "widełki np. 20 000 – 26 000 zł netto B2B",
-      "emoji": "jedno emoji pasujące do roli",
-      "tech_stack": ["tech1", "tech2", "tech3", "tech4", "tech5"]
-    }
-  ]
-}`;
+const AGENT_URL =
+  process.env.LANGGRAPH_DEPLOYMENT_URL || "http://localhost:8123";
 
 export async function POST(req: NextRequest) {
   try {
     const { preference } = await req.json();
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 1. Create a thread
+    const threadRes = await fetch(`${AGENT_URL}/threads`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.9,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Preferencje: ${preference}` },
-        ],
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
     });
+    if (!threadRes.ok) {
+      return NextResponse.json({ error: "Failed to create thread" }, { status: 500 });
+    }
+    const thread = await threadRes.json();
 
-    if (!response.ok) {
-      return NextResponse.json({ error: "OpenAI error" }, { status: 500 });
+    // 2. Run the graph synchronously (wait for completion)
+    const runRes = await fetch(
+      `${AGENT_URL}/threads/${thread.thread_id}/runs/wait`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assistant_id: "job_battle",
+          input: {
+            user_preference: preference,
+            current_stage: "offer_selection",
+          },
+        }),
+      }
+    );
+    if (!runRes.ok) {
+      return NextResponse.json({ error: "Agent run failed" }, { status: 500 });
     }
 
-    const data = await response.json();
-    const parsed = JSON.parse(data.choices[0].message.content);
+    const result = await runRes.json();
 
-    return NextResponse.json({ offers: parsed.offers });
-  } catch {
+    // LangGraph may wrap state in different keys depending on version
+    const state =
+      result?.values ?? result?.state ?? result?.output ?? result ?? {};
+    const offers = state?.available_offers ?? [];
+
+    return NextResponse.json({ offers });
+  } catch (e) {
     return NextResponse.json({ error: "Failed to generate offers" }, { status: 500 });
   }
 }

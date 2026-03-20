@@ -51,9 +51,6 @@ export function ExampleCanvas() {
                 </h2>
                 <p className="text-gray-600 text-sm mt-0.5">{offer.company_name as string}</p>
                 <p className="text-gray-400 text-xs mt-1">{offer.company_vibe as string}</p>
-                <div className="mt-2 bg-white/70 rounded-lg px-2.5 py-1.5 inline-block">
-                  <p className="text-gray-700 text-xs font-medium">{offer.offered_salary as string}</p>
-                </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {(offer.tech_stack as string[]).map((tech) => (
                     <span
@@ -98,8 +95,8 @@ export function ExampleCanvas() {
 function ScoreCard({ label, score }: { label: string; score: number }) {
   const color =
     score >= 7 ? "text-green-600 bg-green-50 border-green-200" :
-    score >= 5 ? "text-yellow-600 bg-yellow-50 border-yellow-200" :
-    "text-red-600 bg-red-50 border-red-200";
+      score >= 5 ? "text-yellow-600 bg-yellow-50 border-yellow-200" :
+        "text-red-600 bg-red-50 border-red-200";
   return (
     <div className={`flex-1 rounded-xl border px-4 py-3 text-center ${color}`}>
       <div className="text-2xl font-bold">{score}<span className="text-sm font-normal">/10</span></div>
@@ -111,13 +108,12 @@ function ScoreCard({ label, score }: { label: string; score: number }) {
 function StageStep({ label, active, done }: { label: string; active: boolean; done: boolean }) {
   return (
     <div
-      className={`flex items-center justify-center w-8 h-8 rounded-full text-[10px] font-bold border-2 transition-colors ${
-        done
-          ? "bg-gray-700 text-white border-gray-700"
-          : active
+      className={`flex items-center justify-center w-8 h-8 rounded-full text-[10px] font-bold border-2 transition-colors ${done
+        ? "bg-gray-700 text-white border-gray-700"
+        : active
           ? "bg-blue-600 text-white border-blue-600"
           : "bg-white text-gray-400 border-gray-200"
-      }`}
+        }`}
     >
       {done ? "✓" : label[0]}
     </div>

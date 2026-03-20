@@ -5,6 +5,7 @@ from src.graph.nodes.evaluate import evaluate_hr, evaluate_tech
 from src.graph.nodes.hr import hr_agent
 from src.graph.nodes.tech import tech_agent
 from src.graph.nodes.final_report import final_report
+from src.graph.nodes.generate_offers import generate_offers
 
 
 def route_evaluate_hr(state: GameState) -> str:
@@ -15,10 +16,18 @@ def route_evaluate_tech(state: GameState) -> str:
     return state.get("decision", "continue")  # type: ignore[return-value]
 
 
+def route_start(state: GameState) -> str:
+    stage = state.get("current_stage", "offer_selection")
+    if stage == "offer_selection":
+        return "generate_offers"
+    return "hr_agent"
+
+
 # Build graph
 
 graph = StateGraph(GameState)
 
+graph.add_node("generate_offers", generate_offers)
 graph.add_node("hr_agent", hr_agent)
 graph.add_node("evaluate_hr", evaluate_hr)
 graph.add_node("tech_agent", tech_agent)
@@ -26,7 +35,8 @@ graph.add_node("evaluate_tech", evaluate_tech)
 graph.add_node("final_report", final_report)
 
 # Edges
-graph.add_edge(START, "hr_agent")
+graph.add_conditional_edges(START, route_start, {"generate_offers": "generate_offers", "hr_agent": "hr_agent"})
+graph.add_edge("generate_offers", END)
 graph.add_edge("hr_agent", "evaluate_hr")
 
 graph.add_conditional_edges(

@@ -9,7 +9,6 @@ const PRESET_OFFERS: OfferCard[] = [
     company_name: "NovaTech Sp. z o.o.",
     target_role: "Senior Python Developer",
     company_vibe: "scale-up, fintech, Warszawa, 200 os.",
-    offered_salary: "22 000 – 28 000 zł netto B2B",
     emoji: "🐍",
     tech_stack: ["Python", "FastAPI", "PostgreSQL", "Docker", "K8s"],
   },
@@ -18,7 +17,6 @@ const PRESET_OFFERS: OfferCard[] = [
     company_name: "CloudBase S.A.",
     target_role: "Frontend Engineer (React)",
     company_vibe: "startup, SaaS B2B, Kraków / remote, 60 os.",
-    offered_salary: "18 000 – 24 000 zł netto B2B",
     emoji: "⚛️",
     tech_stack: ["React", "TypeScript", "Next.js", "Tailwind", "GraphQL"],
   },
@@ -27,28 +25,9 @@ const PRESET_OFFERS: OfferCard[] = [
     company_name: "DataFlow Systems",
     target_role: "Machine Learning Engineer",
     company_vibe: "korporacja, AI/ML, Wrocław, 500 os.",
-    offered_salary: "25 000 – 35 000 zł netto B2B",
     emoji: "🤖",
     tech_stack: ["Python", "PyTorch", "MLflow", "AWS", "Spark"],
-  },
-  {
-    id: "preset-4",
-    company_name: "DevOps Hub",
-    target_role: "DevOps / Platform Engineer",
-    company_vibe: "agencja tech, infrastruktura, Gdańsk, 80 os.",
-    offered_salary: "20 000 – 27 000 zł netto B2B",
-    emoji: "☁️",
-    tech_stack: ["Terraform", "Kubernetes", "AWS", "CI/CD", "Python"],
-  },
-  {
-    id: "preset-5",
-    company_name: "MobiSoft Sp. z o.o.",
-    target_role: "Backend Engineer (Java/Kotlin)",
-    company_vibe: "scale-up, e-commerce, Poznań, 150 os.",
-    offered_salary: "20 000 – 26 000 zł netto B2B",
-    emoji: "☕",
-    tech_stack: ["Java", "Kotlin", "Spring Boot", "Kafka", "PostgreSQL"],
-  },
+  }
 ];
 
 interface OfferBoardProps {
@@ -72,9 +51,9 @@ export function OfferBoard({ onSelectOffer }: OfferBoardProps) {
         });
         if (res.ok) {
           const data = await res.json();
-          setOffers(data.offers);
+          if (data.offers?.length) setOffers(data.offers);
         }
-      } catch {
+      } catch (e) {
         // keep current offers on error
       }
     });

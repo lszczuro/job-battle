@@ -15,10 +15,6 @@ export const useExampleSuggestions = () => {
         title: "Motywacja do zmiany",
         message: "Szukam miejsca, gdzie mogę się rozwijać technicznie i mieć realny wpływ na produkt.",
       },
-      {
-        title: "Oczekiwania finansowe",
-        message: "Moje oczekiwania finansowe są zgodne z ofertą. Ważniejsza jest dla mnie atmosfera i możliwości rozwoju.",
-      },
     ],
     available: "always",
   });
