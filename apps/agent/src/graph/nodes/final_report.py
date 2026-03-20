@@ -6,7 +6,7 @@ from src.graph.state import GameState
 
 async def final_report(state: GameState) -> dict:
     llm = ChatOpenAI(
-        model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+        model=os.environ.get("OPENAI_MODEL", "gpt-5-nano"),
         temperature=0.1,
         reasoning_effort="minimal",
         api_key=os.environ["OPENAI_API_KEY"],

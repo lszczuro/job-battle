@@ -157,8 +157,35 @@ function GamePage() {
           <HRChatHeader offer={offer} isRunning={agent.isRunning} />
         )}
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden relative">
           <CopilotChat input={{ disclaimer: () => null, className: "pb-4" }} />
+          {agent.messages.length === 0 && (
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10"
+              style={{ background: isHr ? "#111118" : "var(--background, #fff)" }}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                />
+                <span
+                  className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <span
+                  className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                />
+              </div>
+              <p
+                className="text-sm font-mono"
+                style={{ color: isHr ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}
+              >
+                Nawiązywanie połączenia z rekruterem...
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
