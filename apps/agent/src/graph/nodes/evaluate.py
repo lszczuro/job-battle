@@ -1,7 +1,9 @@
+import asyncio
 import os
 import json
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, RemoveMessage
+from pydantic import SecretStr
 from src.graph.state import GameState
 
 HR_EVAL_PROMPT = """\
@@ -96,7 +98,7 @@ def _make_llm():
         model="gpt-5-nano",
         model_kwargs={"response_format": {"type": "json_object"}},
         reasoning_effort="minimal",
-        api_key=os.environ["OPENAI_API_KEY"],
+        api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
 
@@ -105,7 +107,7 @@ def _make_detection_llm():
     return ChatOpenAI(
         model="gpt-4o-mini",
         model_kwargs={"response_format": {"type": "json_object"}},
-        api_key=os.environ["OPENAI_API_KEY"],
+        api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
 
@@ -113,7 +115,7 @@ def _make_detection_llm():
 # AI-use detection
 # ---------------------------------------------------------------------------
 
-async def _score_single_pair(question: str, answer: str, llm: ChatOpenAI = None) -> float:
+async def _score_single_pair(question: str, answer: str, llm: ChatOpenAI | None = None) -> float:
     """Returns 0.0–1.0 AI probability for one question/answer pair."""
     if llm is None:
         llm = _make_detection_llm()
@@ -122,14 +124,14 @@ async def _score_single_pair(question: str, answer: str, llm: ChatOpenAI = None)
         HumanMessage(content=answer),
     ], config={"callbacks": []})
     try:
-        data = json.loads(result.content)
+        data = json.loads(str(result.content))
         score = int(data.get("score", 50))
         return round(min(max(score, 0), 100) / 100, 2)
     except (json.JSONDecodeError, AttributeError, ValueError):
         return 0.3  # lean human on parse failure — don't penalize unfairly
 
 
-async def _score_latest_pair(messages: list, llm: ChatOpenAI = None) -> float | None:
+async def _score_latest_pair(messages: list, llm: ChatOpenAI | None = None) -> float | None:
     """Scores only the most recent question/answer pair. Returns None if no pair found."""
     ai_msgs = [m for m in messages if isinstance(m, AIMessage)]
     human_msgs = [m for m in messages if isinstance(m, HumanMessage)]
@@ -158,7 +160,7 @@ def _determine_hr_decision(effective_score: int, turn_count: int) -> str:
 # ---------------------------------------------------------------------------
 
 def _clear_messages(state: GameState) -> list:
-    return [RemoveMessage(id=m.id) for m in state["messages"]]
+    return [RemoveMessage(id=m.id) for m in state["messages"] if m.id is not None]
 
 
 # ---------------------------------------------------------------------------
@@ -170,9 +172,19 @@ async def evaluate_hr(state: GameState) -> dict:
     turn_count = state.get("turn_count", 0)
     messages = state["messages"]
 
-    # Najpierw wyznacz AI suspicion — potrzebne do prompta HR
     prev_suspicion: float = state.get("hr_ai_suspicion") or 0.0
-    latest_suspicion = await _score_latest_pair(messages)
+
+    system = HR_EVAL_PROMPT.format(
+        target_role=state.get("target_role") or "kandydata",
+        company_name=state.get("company_name") or "nieznanej firmy",
+        turn_count=turn_count,
+    )
+
+    # Oba wywołania LLM są niezależne — uruchamiamy równolegle
+    latest_suspicion, hr_response = await asyncio.gather(
+        _score_latest_pair(messages),
+        llm.ainvoke([SystemMessage(content=system)] + messages, config={"callbacks": []}),
+    )
 
     # Inkrementalne uśrednianie — nie re-scorujemy całej historii
     if latest_suspicion is None:
@@ -182,15 +194,7 @@ async def evaluate_hr(state: GameState) -> dict:
     else:
         ai_suspicion = round((prev_suspicion * (turn_count - 1) + latest_suspicion) / turn_count, 2)
 
-    system = HR_EVAL_PROMPT.format(
-        target_role=state.get("target_role") or "kandydata",
-        company_name=state.get("company_name") or "nieznanej firmy",
-        turn_count=turn_count,
-    )
-
-    hr_response = await llm.ainvoke([SystemMessage(content=system)] + messages, config={"callbacks": []})
-
-    hr_eval = json.loads(hr_response.content)
+    hr_eval = json.loads(str(hr_response.content))
     raw_score: int = hr_eval["score"]
 
     # Enforce AI detection caps in code — LLM (nano/minimal) doesn't reliably follow prompt rules
@@ -199,11 +203,11 @@ async def evaluate_hr(state: GameState) -> dict:
         effective_score = min(effective_score, 25)
     elif latest_suspicion is not None and latest_suspicion >= 0.70:
         effective_score = min(effective_score, 40)
-    if ai_suspicion >= 0.70:
+    if ai_suspicion >= 0.85:
         effective_score = max(effective_score - 20, 1)
 
-    # AI rejection flag: set when latest detection directly caused score cap (≥0.70)
-    ai_rejection_triggered = latest_suspicion is not None and latest_suspicion >= 0.70
+    # AI rejection flag: set when latest detection directly caused score cap (≥0.85)
+    ai_rejection_triggered = latest_suspicion is not None and latest_suspicion >= 0.85
 
     print(f"DEBUG evaluate_hr: raw_score={raw_score}, effective_score={effective_score}, latest_suspicion={latest_suspicion}, avg_suspicion={ai_suspicion}, turns={turn_count}")
     decision = _determine_hr_decision(effective_score, turn_count)
@@ -239,7 +243,7 @@ async def evaluate_tech(state: GameState) -> dict:
         [SystemMessage(content=system)] + state["messages"],
         config={"callbacks": []},
     )
-    result = json.loads(response.content)
+    result = json.loads(str(response.content))
 
     updates = {
         "tech_score": result["score"],

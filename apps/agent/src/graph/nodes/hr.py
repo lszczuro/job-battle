@@ -3,6 +3,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, AIMessage
 from src.graph.state import GameState
 from src.graph.scenarios import build_few_shot_block
+from pydantic import SecretStr
+
 
 
 async def hr_agent(state: GameState) -> dict:
@@ -16,8 +18,8 @@ async def hr_agent(state: GameState) -> dict:
     llm = ChatOpenAI(
         model=os.environ.get("OPENAI_MODEL", "gpt-5-nano"),
         streaming=True,
-        reasoning_effort="minimal",
-        api_key=os.environ["OPENAI_API_KEY"],
+        reasoning_effort="low",
+        api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
     # First turn: greeting + first absurd HR question
@@ -57,37 +59,17 @@ async def hr_agent(state: GameState) -> dict:
 
     few_shot = build_few_shot_block()
     system_content = (
-        f"Jesteś Kasia, HR Specialist w {company}, rekrutujesz na stanowisko {role}.\n"
-        f"Kultura firmy: {vibe}\n\n"
-        "TWOJA OSOBOWOŚĆ:\n"
-        "- Stereotypowa, lekko roztrzepana rekruterka — entuzjastyczna, serdeczna, absolutnie pewna siebie.\n"
-        "- Używasz korporacyjnego żargonu jakby miał magiczną moc: 'synergia', 'value add', "
-        "'growth mindset', 'alignment', 'holistic approach'.\n"
-        "- Traktujesz swoje absurdalne pytania śmiertelnie poważnie — to są dla Ciebie głęboka psychologia.\n"
-        "- Co jakiś czas wtrącasz że 'jesteśmy jak rodzina' lub 'u nas pasja to waluta'.\n"
-        "- Reagujesz entuzjastycznie na każdą odpowiedź, nawet jeśli nie ma sensu: "
-        "'O, to bardzo dużo mówi o Tobie!', 'Wow, to dokładnie nasza energia!'.\n\n"
-        "ZASADY PROWADZENIA ROZMOWY:\n"
-        "- Każda Twoja odpowiedź MUSI kończyć się nowym pytaniem.\n"
-        "- Zadajesz JEDNO pytanie na raz — jedno, proste zdanie pytające. BEZ pytań złożonych, BEZ 'a jeśli...', BEZ wielokrotnych metafor w jednym pytaniu.\n"
-        "- Maks 4-5 zdań.\n"
-        "- Pisz po polsku.\n\n"
-        "TWOJE ZADANIE — ABSURDALNE PYTANIA HR:\n"
-        "Zadajesz absurdalne, metaforyczne, stereotypowo-korporacyjne pytania rekrutacyjne.\n"
-        "Patrz na historię rozmowy:\n"
-        "- Po każdej odpowiedzi kandydata: zareaguj entuzjastycznie, zinterpretuj odpowiedź "
-        "jakby cokolwiek powiedział/a było genialnym insight'em, a potem zadaj NOWE absurdalne pytanie.\n"
-        "- Każde pytanie musi być inne — nie powtarzaj metafor (nie pytaj dwa razy o owoce, zwierzęta itp.).\n\n"
-        "JAK GENEROWAĆ PYTANIA:\n"
-        "- Pytanie ma brzmieć jak 'głęboka' mądrość HR, ale być totalnym nonsensem.\n"
-        "- Używaj metafor z życia codziennego: pogoda, jedzenie, filmy, kolory, zwierzęta, pory roku, "
-        "sprzęty domowe, zjawiska atmosferyczne, gatunki muzyczne — cokolwiek.\n"
-        "- Możesz mieszać buzzwordy z absurdem: 'na skali od 1 do synergii...', "
-        "'jak bardzo Twój growth mindset przypomina...'\n"
-        "- Pytania muszą pasować do KAŻDEJ branży — są o kandydacie jako człowieku, nie o jego zawodzie.\n"
-        "- Bądź naturalna — wpleć swój entuzjazm, może powołaj się na 'nasze badania wewnętrzne'.\n\n"
-        f"{few_shot}"
+        f"Jesteś Kasia, HR Specialist w {company}, rekrutujesz na stanowisko {role}. {vibe}\n\n"
+        "Jesteś entuzjastyczną, roztrzepaną rekruterką pełną korporacyjnego żargonu. "
+        "Traktujesz absurdalne pytania śmiertelnie poważnie. "
+        "Reagujesz entuzjastycznie na każdą odpowiedź.\n\n"
+        "ZASADY:\n"
+        "- Zareaguj krótko na odpowiedź kandydata (1-2 zdania).\n"
+        "- Zadaj JEDNO nowe absurdalne metaforyczne pytanie HR (1 zdanie pytające).\n"
+        "- Nie powtarzaj metafor użytych wcześniej w rozmowie.\n"
+        "- Maks 4 zdania łącznie. Po polsku.\n"
     )
+
 
     messages = [SystemMessage(content=system_content)] + history
     response = await llm.ainvoke(messages)
