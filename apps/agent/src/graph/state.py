@@ -30,7 +30,9 @@ class GameState(TypedDict):
     company_vibe: str | None
 
     # Ukryte oceny (niewidoczne dla gracza)
-    hr_score: int | None
+    hr_score: int | None           # effective score (po AI penalty)
+    hr_score_raw: int | None       # raw score z LLM przed penalty
+    hr_ai_suspicion: float | None  # 0.0–1.0 prawdopodobieństwo użycia AI
     tech_score: int | None
     hr_feedback: str | None
     tech_feedback: str | None
@@ -46,5 +48,3 @@ class GameState(TypedDict):
     turn_count: int
     game_over: bool
 
-    # Detekcja AI — lista prawdopodobieństw (0.0–1.0) per odpowiedź kandydata
-    ai_suspicion_scores: list[float] | None
