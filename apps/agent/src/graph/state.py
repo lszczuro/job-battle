@@ -45,3 +45,6 @@ class GameState(TypedDict):
     current_stage: Literal["offer_selection", "hr", "tech", "rejected", "offer"]
     turn_count: int
     game_over: bool
+
+    # Detekcja AI — lista prawdopodobieństw (0.0–1.0) per odpowiedź kandydata
+    ai_suspicion_scores: list[float] | None

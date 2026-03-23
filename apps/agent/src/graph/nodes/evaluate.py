@@ -91,7 +91,7 @@ async def evaluate_hr(state: GameState) -> dict:
         "hr_summary": result.get("hr_summary"),
     }
 
-    if result["decision"] == "pass":
+    if decision == "pass":
         transition_msg = AIMessage(
             content=(
                 "Świetnie! Rozmowa HR przebiegła bardzo dobrze. "
@@ -101,6 +101,15 @@ async def evaluate_hr(state: GameState) -> dict:
         )
         updates["messages"] = _clear_messages(state) + [transition_msg]
         updates["current_stage"] = "tech"
+    elif decision == "fail":
+        farewell_msg = AIMessage(
+            content=(
+                "Okej, super, dziękuję za poświęcony czas! "
+                "Skontaktujemy się z Panem/Panią w ciągu kilku dni. "
+                "Miłego dnia!"
+            )
+        )
+        updates["messages"] = _clear_messages(state) + [farewell_msg]
 
     return updates
 

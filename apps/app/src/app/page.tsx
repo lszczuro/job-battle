@@ -124,8 +124,13 @@ function GamePage() {
       game_over: false,
     });
     setGameStarted(true);
-    agent.runAgent();
   };
+
+  useEffect(() => {
+    if (gameStarted && agent.messages.length === 0 && !agent.isRunning) {
+      agent.runAgent();
+    }
+  }, [gameStarted]);
 
   if (!gameStarted) {
     return <OfferBoard onSelectOffer={handleSelectOffer} />;

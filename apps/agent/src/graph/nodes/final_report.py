@@ -5,6 +5,16 @@ from src.graph.state import GameState
 
 
 async def final_report(state: GameState) -> dict:
+    outcome = state.get("current_stage", "rejected")
+    final_stage = "offer" if outcome == "offer" else "rejected"
+
+    # HR rejection — no summary, farewell message already set by evaluate_hr
+    if state.get("tech_score") is None:
+        return {
+            "game_over": True,
+            "current_stage": final_stage,
+        }
+
     llm = ChatOpenAI(
         model=os.environ.get("OPENAI_MODEL", "gpt-5-nano"),
         temperature=0.1,
@@ -31,9 +41,6 @@ async def final_report(state: GameState) -> dict:
 
     messages = [SystemMessage(content=system), HumanMessage(content=summary_input)]
     response = await llm.ainvoke(messages)
-
-    outcome = state.get("current_stage", "rejected")
-    final_stage = "offer" if outcome == "offer" else "rejected"
 
     return {
         "game_over": True,
