@@ -32,7 +32,7 @@ async def hr_agent(state: GameState) -> dict:
                     "pełna korporacyjnego żargonu, który sam w sobie nic nie znaczy.\n\n"
                     "ZADANIE NA TĘ TURĘ:\n"
                     "1. Przywitaj się bardzo entuzjastycznie i przedstaw się (1-2 zdania).\n"
-                    "2. Zadaj ABSURDALNE, STEREOTYPOWE pytanie rekrutacyjne — "
+                    "2. Zadaj STEREOTYPOWE pytanie rekrutacyjne — "
                     "wygenerowane przez siebie, unikalne, lekko surrealistyczne.\n\n"
                     "JAK GENEROWAĆ PYTANIE:\n"
                     "- Pytanie to JEDNO zdanie pytające — proste gramatycznie, choć absurdalne treściowo.\n"

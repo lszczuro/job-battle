@@ -66,8 +66,8 @@ graph.add_conditional_edges(
     route_evaluate_hr,
     {
         "continue": "hr_agent",
-        "pass": "tech_agent",
-        "fail": "final_report",
+        "pass": END,
+        "fail": END,
     },
 )
 graph.add_edge("hr_agent", END)

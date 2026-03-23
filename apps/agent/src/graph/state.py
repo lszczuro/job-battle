@@ -32,7 +32,8 @@ class GameState(TypedDict):
     # Ukryte oceny (niewidoczne dla gracza)
     hr_score: int | None           # effective score (po AI penalty)
     hr_score_raw: int | None       # raw score z LLM przed penalty
-    hr_ai_suspicion: float | None  # 0.0–1.0 prawdopodobieństwo użycia AI
+    hr_ai_suspicion: float | None  # 0.0–1.0 prawdopodobieństwo użycia AI (średnia)
+    hr_ai_rejected: bool | None    # True gdy AI detection był bezpośrednią przyczyną odrzucenia
     tech_score: int | None
     hr_feedback: str | None
     tech_feedback: str | None
@@ -44,7 +45,7 @@ class GameState(TypedDict):
     final_summary: str | None
 
     # Kontrola przepływu
-    current_stage: Literal["offer_selection", "hr", "tech", "rejected", "offer"]
+    current_stage: Literal["offer_selection", "hr", "hr_passed", "hr_failed", "tech", "rejected", "offer"]
     turn_count: int
     game_over: bool
 

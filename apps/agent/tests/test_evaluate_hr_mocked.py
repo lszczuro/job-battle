@@ -198,31 +198,43 @@ class TestAiPenaltyIntegration:
 # ---------------------------------------------------------------------------
 
 class TestStateTransitions:
-    async def test_pass_sets_tech_stage(self):
+    async def test_pass_sets_hr_passed_stage(self):
         state = _state(turn_count=2, messages=_convo(1))
         with patch("src.graph.nodes.evaluate._make_llm",
                    return_value=_patched_llm(_hr_llm_response(80), _ai_detection_response(10))):
             result = await evaluate_hr(state)
-        assert result["current_stage"] == "tech"
+        assert result["current_stage"] == "hr_passed"
 
-    async def test_pass_clears_messages_and_adds_transition(self):
+    async def test_pass_clears_messages_no_transition_message(self):
         state = _state(turn_count=2, messages=_convo(1))
         with patch("src.graph.nodes.evaluate._make_llm",
                    return_value=_patched_llm(_hr_llm_response(80), _ai_detection_response(10))):
             result = await evaluate_hr(state)
-        # Last message should be the tech transition message
-        last_msg = result["messages"][-1]
-        assert isinstance(last_msg, AIMessage)
-        assert "techniczna" in last_msg.content
+        # Only RemoveMessage entries — no new AIMessage added
+        from langchain_core.messages import RemoveMessage
+        assert all(isinstance(m, RemoveMessage) for m in result["messages"])
 
-    async def test_fail_clears_messages_and_adds_farewell(self):
+    async def test_fail_sets_hr_failed_stage(self):
         state = _state(turn_count=2, messages=_convo(1))
         with patch("src.graph.nodes.evaluate._make_llm",
                    return_value=_patched_llm(_hr_llm_response(30), _ai_detection_response(10))):
             result = await evaluate_hr(state)
-        last_msg = result["messages"][-1]
-        assert isinstance(last_msg, AIMessage)
-        assert "dziękuję" in last_msg.content.lower()
+        assert result["current_stage"] == "hr_failed"
+
+    async def test_fail_sets_game_over(self):
+        state = _state(turn_count=2, messages=_convo(1))
+        with patch("src.graph.nodes.evaluate._make_llm",
+                   return_value=_patched_llm(_hr_llm_response(30), _ai_detection_response(10))):
+            result = await evaluate_hr(state)
+        assert result["game_over"] is True
+
+    async def test_fail_clears_messages_no_farewell(self):
+        state = _state(turn_count=2, messages=_convo(1))
+        with patch("src.graph.nodes.evaluate._make_llm",
+                   return_value=_patched_llm(_hr_llm_response(30), _ai_detection_response(10))):
+            result = await evaluate_hr(state)
+        from langchain_core.messages import RemoveMessage
+        assert all(isinstance(m, RemoveMessage) for m in result["messages"])
 
     async def test_continue_does_not_set_stage(self):
         state = _state(turn_count=2, messages=_convo(1))

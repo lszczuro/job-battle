@@ -5,6 +5,8 @@ import { useAgent } from "@copilotkit/react-core/v2";
 const STAGE_LABELS: Record<string, string> = {
   offer_selection: "Wybór oferty",
   hr: "Rozmowa HR",
+  hr_passed: "HR zaliczony ✓",
+  hr_failed: "Odrzucony na etapie HR",
   tech: "Rozmowa techniczna",
   offer: "Oferta złożona! 🎉",
   rejected: "Odrzucony",
@@ -12,6 +14,8 @@ const STAGE_LABELS: Record<string, string> = {
 
 const STAGE_COLORS: Record<string, string> = {
   hr: "bg-blue-100 text-blue-700",
+  hr_passed: "bg-green-100 text-green-700",
+  hr_failed: "bg-red-100 text-red-700",
   tech: "bg-purple-100 text-purple-700",
   offer: "bg-green-100 text-green-700",
   rejected: "bg-red-100 text-red-700",
@@ -80,7 +84,7 @@ export function ExampleCanvas() {
 
         {/* Progress stages */}
         <div className="flex items-center gap-2 text-xs text-gray-400">
-          <StageStep label="HR" active={stage === "hr"} done={["tech", "offer", "rejected"].includes(stage)} />
+          <StageStep label="HR" active={stage === "hr"} done={["hr_passed", "tech", "offer", "rejected"].includes(stage)} />
           <div className="flex-1 h-px bg-gray-200" />
           <StageStep label="Tech" active={stage === "tech"} done={["offer", "rejected"].includes(stage)} />
           <div className="flex-1 h-px bg-gray-200" />
