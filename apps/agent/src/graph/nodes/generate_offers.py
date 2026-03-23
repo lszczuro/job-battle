@@ -4,6 +4,8 @@ import uuid
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from src.graph.state import GameState, OfferCard
+from pydantic import SecretStr
+
 
 SYSTEM_PROMPT = (
     "Zwróć dokładnie 3 oferty. Odpowiedz wyłącznie poprawnym JSON-em w podanym formacie, bez dodatkowego tekstu, komentarzy ani znaczników markdown. "
@@ -27,7 +29,7 @@ async def generate_offers(state: GameState) -> dict:
         model_kwargs={"response_format": {"type": "json_object"}},
         temperature=0.9,
         reasoning_effort="minimal",
-        api_key=os.environ["OPENAI_API_KEY"],
+        api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
     messages = [
@@ -36,7 +38,7 @@ async def generate_offers(state: GameState) -> dict:
     ]
     response = await llm.ainvoke(messages)
 
-    raw = json.loads(response.content)
+    raw = json.loads(str(response.content))
     # LLM may return {"offers": [...]} or just [...]
     if isinstance(raw, list):
         items = raw

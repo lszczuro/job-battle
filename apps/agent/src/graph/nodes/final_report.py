@@ -2,41 +2,37 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from src.graph.state import GameState
+from pydantic import SecretStr
+
 
 
 async def final_report(state: GameState) -> dict:
-    outcome = state.get("current_stage", "rejected")
-    final_stage = "offer" if outcome == "offer" else "rejected"
-
-    # HR rejection — no summary, farewell message already set by evaluate_hr
-    if state.get("tech_score") is None:
-        return {
-            "game_over": True,
-            "current_stage": final_stage,
-        }
-
     llm = ChatOpenAI(
         model=os.environ.get("OPENAI_MODEL", "gpt-5-nano"),
-        temperature=0.1,
+        temperature=0.4,
         reasoning_effort="minimal",
-        api_key=os.environ["OPENAI_API_KEY"],
+        api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
+
+    target_role = state.get("target_role") or "nieznane stanowisko"
+    company_name = state.get("company_name") or "nieznana firma"
+    hr_score = state.get("hr_score")
+    hr_feedback = state.get("hr_feedback") or ""
+    hr_summary = state.get("hr_summary") or ""
 
     system = (
         "Jesteś narratorem procesu rekrutacyjnego.\n"
-        "Napisz krótkie podsumowanie dla kandydata —\n"
-        "co poszło dobrze, co źle, jaka była ostateczna decyzja.\n"
-        "Bądź szczery ale konstruktywny.\n"
-        "Uwzględnij oceny z każdego etapu."
+        "Kandydat właśnie pomyślnie przeszedł rozmowę HR i otrzymuje ofertę pracy.\n"
+        "Napisz krótkie, entuzjastyczne podsumowanie z gratulacjami (3-4 zdania).\n"
+        "Uwzględnij stanowisko, firmę i wynik HR. Bądź ciepły, konkretny i motywujący.\n"
+        "Pisz po polsku, bezpośrednio do kandydata."
     )
 
     summary_input = (
-        f"Stanowisko: {state.get('target_role') or 'nieznane'} w {state.get('company_name') or 'nieznanej firmie'}\n\n"
-        f"HR — ocena: {state.get('hr_score')}/10, "
-        f"feedback: {state.get('hr_feedback')}\n"
-        f"Tech — ocena: {state.get('tech_score')}/10, "
-        f"feedback: {state.get('tech_feedback')}\n"
-        f"Wynik końcowy: {state.get('current_stage')}"
+        f"Stanowisko: {target_role} w {company_name}\n"
+        f"Wynik HR: {hr_score}/100\n"
+        f"Feedback rekrutera: {hr_feedback}\n"
+        f"Podsumowanie rozmowy: {hr_summary}"
     )
 
     messages = [SystemMessage(content=system), HumanMessage(content=summary_input)]
@@ -44,7 +40,6 @@ async def final_report(state: GameState) -> dict:
 
     return {
         "game_over": True,
-        "current_stage": final_stage,
+        "current_stage": "offer",
         "final_summary": response.content,
-        "messages": [response],
     }

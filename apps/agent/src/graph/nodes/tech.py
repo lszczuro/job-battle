@@ -2,6 +2,8 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 from src.graph.state import GameState
+from pydantic import SecretStr
+
 
 
 async def tech_agent(state: GameState) -> dict:
@@ -9,7 +11,7 @@ async def tech_agent(state: GameState) -> dict:
         model=os.environ.get("OPENAI_MODEL", "gpt-5-nano"),
         streaming=True,
         reasoning_effort="minimal",
-        api_key=os.environ["OPENAI_API_KEY"],
+        api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
     hr_context = state.get("hr_summary") or "Brak podsumowania od HR."

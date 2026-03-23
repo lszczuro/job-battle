@@ -224,7 +224,6 @@ async def evaluate_hr(state: GameState) -> dict:
 
     if decision == "pass":
         updates["messages"] = _clear_messages(state)
-        updates["current_stage"] = "hr_passed"
     elif decision == "fail":
         updates["messages"] = _clear_messages(state)
         updates["current_stage"] = "hr_failed"

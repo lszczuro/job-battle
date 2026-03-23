@@ -20,7 +20,7 @@ function ProgressStep({ label, state }: { label: string; state: StepState }) {
   );
 }
 
-export function ProgressTracker({ hr, tech, wynik }: { hr: StepState; tech: StepState; wynik: StepState }) {
+export function ProgressTracker({ hr, wynik }: { hr: StepState; wynik: StepState }) {
   return (
     <div
       className="flex items-center gap-2 rounded-xl px-5 py-3"
@@ -28,8 +28,6 @@ export function ProgressTracker({ hr, tech, wynik }: { hr: StepState; tech: Step
     >
       <ProgressStep label="HR" state={hr} />
       <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.1)" }} />
-      <ProgressStep label="Tech" state={tech} />
-      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
       <ProgressStep label="Wynik" state={wynik} />
     </div>
   );
