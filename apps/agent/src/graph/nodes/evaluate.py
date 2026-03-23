@@ -147,6 +147,18 @@ async def _score_latest_pair(messages: list, llm: ChatOpenAI | None = None) -> f
 # ---------------------------------------------------------------------------
 
 
+def _apply_ai_penalty(score: int, latest_suspicion: float | None, avg_suspicion: float) -> int:
+    """Apply AI-use caps based on detection scores. Returns effective score (floor 1)."""
+    effective = score
+    if latest_suspicion is not None and latest_suspicion >= 0.85:
+        effective = min(effective, 25)
+    elif latest_suspicion is not None and latest_suspicion >= 0.70:
+        effective = min(effective, 40)
+    if avg_suspicion >= 0.85:
+        effective = max(effective - 20, 1)
+    return effective
+
+
 def _determine_hr_decision(effective_score: int, turn_count: int) -> str:
     if turn_count > 5 or effective_score <= 40:
         return "fail"
@@ -197,14 +209,8 @@ async def evaluate_hr(state: GameState) -> dict:
     hr_eval = json.loads(str(hr_response.content))
     raw_score: int = hr_eval["score"]
 
-    # Enforce AI detection caps in code — LLM (nano/minimal) doesn't reliably follow prompt rules
-    effective_score = raw_score
-    if latest_suspicion is not None and latest_suspicion >= 0.85:
-        effective_score = min(effective_score, 25)
-    elif latest_suspicion is not None and latest_suspicion >= 0.70:
-        effective_score = min(effective_score, 40)
-    if ai_suspicion >= 0.85:
-        effective_score = max(effective_score - 20, 1)
+    # Enforce AI detection penalty in code — LLM (nano/minimal) doesn't reliably follow prompt rules
+    effective_score = _apply_ai_penalty(raw_score, latest_suspicion, ai_suspicion)
 
     # AI rejection flag: set when latest detection directly caused score cap (≥0.85)
     ai_rejection_triggered = latest_suspicion is not None and latest_suspicion >= 0.85

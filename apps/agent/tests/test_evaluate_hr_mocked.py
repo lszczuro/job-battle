@@ -5,10 +5,12 @@ No real API calls.
 """
 import json
 import pytest
+from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
 from langchain_core.messages import AIMessage, HumanMessage
 
 from src.graph.nodes.evaluate import evaluate_hr, _score_single_pair
+from src.graph.state import GameState
 
 
 # ---------------------------------------------------------------------------
@@ -23,7 +25,7 @@ def _hr_llm_response(score: int, feedback: str = "ok", summary: str = "good") ->
     }))
 
 
-def _ai_detection_response(score: int) -> AIMessage:
+def _detection_llm_response(score: int) -> AIMessage:
     return AIMessage(content=json.dumps({"score": score}))
 
 
@@ -40,13 +42,15 @@ def _state(
     turn_count: int,
     messages: list,
     hr_ai_suspicion: float | None = None,
-) -> dict:
+) -> GameState:
     return {
         "turn_count": turn_count,
         "messages": messages,
         "hr_ai_suspicion": hr_ai_suspicion,
+        "hr_ai_rejected": None,
         "target_role": "Developer",
         "company_name": "TestCorp",
+        "company_vibe": None,
         "current_stage": "hr",
         "game_over": False,
         "decision": None,
@@ -58,15 +62,31 @@ def _state(
         "tech_feedback": None,
         "final_summary": None,
         "selected_offer": None,
-        "company_vibe": None,
+        "available_offers": [],
+        "user_preference": None,
     }
 
 
-def _patched_llm(*responses):
-    """Return a mock LLM whose ainvoke returns responses in sequence."""
-    mock_llm = AsyncMock()
-    mock_llm.ainvoke.side_effect = list(responses)
-    return mock_llm
+def _mock_hr_llm(hr_response: AIMessage) -> AsyncMock:
+    mock = AsyncMock()
+    mock.ainvoke.return_value = hr_response
+    return mock
+
+
+def _mock_detection_llm(detection_score: int) -> AsyncMock:
+    mock = AsyncMock()
+    mock.ainvoke.return_value = _detection_llm_response(detection_score)
+    return mock
+
+
+@contextmanager
+def _patch_llms(hr_score: int, detection_score: int, hr_feedback: str = "ok", hr_summary: str = "good"):
+    """Patch both LLM factories with canned responses."""
+    with patch("src.graph.nodes.evaluate._make_llm",
+               return_value=_mock_hr_llm(_hr_llm_response(hr_score, hr_feedback, hr_summary))):
+        with patch("src.graph.nodes.evaluate._make_detection_llm",
+                   return_value=_mock_detection_llm(detection_score)):
+            yield
 
 
 # ---------------------------------------------------------------------------
@@ -76,44 +96,37 @@ def _patched_llm(*responses):
 class TestEvaluateHrRouting:
     async def test_continue_mid_score(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(65), _ai_detection_response(20))):
+        with _patch_llms(hr_score=65, detection_score=20):
             result = await evaluate_hr(state)
         assert result["decision"] == "continue"
 
     async def test_pass_high_score(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(75), _ai_detection_response(10))):
+        with _patch_llms(hr_score=75, detection_score=10):
             result = await evaluate_hr(state)
         assert result["decision"] == "pass"
 
     async def test_fail_low_score(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(35), _ai_detection_response(10))):
+        with _patch_llms(hr_score=35, detection_score=10):
             result = await evaluate_hr(state)
         assert result["decision"] == "fail"
 
     async def test_fail_score_exactly_40(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(40), _ai_detection_response(10))):
+        with _patch_llms(hr_score=40, detection_score=10):
             result = await evaluate_hr(state)
         assert result["decision"] == "fail"
 
     async def test_fail_too_many_turns(self):
-        # turn_count=6 forces fail regardless of score
         state = _state(turn_count=6, messages=_convo(3))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(90), _ai_detection_response(5))):
+        with _patch_llms(hr_score=90, detection_score=5):
             result = await evaluate_hr(state)
         assert result["decision"] == "fail"
 
     async def test_pass_score_exactly_70(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(70), _ai_detection_response(10))):
+        with _patch_llms(hr_score=70, detection_score=10):
             result = await evaluate_hr(state)
         assert result["decision"] == "pass"
 
@@ -126,8 +139,7 @@ class TestAiSuspicionAveraging:
     async def test_first_eval_uses_latest_directly(self):
         # turn_count=1: ai_suspicion = latest (no averaging)
         state = _state(turn_count=1, messages=_convo(1), hr_ai_suspicion=None)
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(65), _ai_detection_response(80))):
+        with _patch_llms(hr_score=65, detection_score=80):
             result = await evaluate_hr(state)
         assert result["hr_ai_suspicion"] == 0.80
 
@@ -135,8 +147,7 @@ class TestAiSuspicionAveraging:
         # turn_count=2, prev=0.40, latest=0.80
         # (0.40 * 1 + 0.80) / 2 = 0.60
         state = _state(turn_count=2, messages=_convo(1), hr_ai_suspicion=0.40)
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(65), _ai_detection_response(80))):
+        with _patch_llms(hr_score=65, detection_score=80):
             result = await evaluate_hr(state)
         assert result["hr_ai_suspicion"] == 0.60
 
@@ -144,8 +155,7 @@ class TestAiSuspicionAveraging:
         # turn_count=3, prev=0.60, latest=0.30
         # (0.60 * 2 + 0.30) / 3 = 0.50
         state = _state(turn_count=3, messages=_convo(1), hr_ai_suspicion=0.60)
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(65), _ai_detection_response(30))):
+        with _patch_llms(hr_score=65, detection_score=30):
             result = await evaluate_hr(state)
         assert result["hr_ai_suspicion"] == 0.50
 
@@ -153,8 +163,10 @@ class TestAiSuspicionAveraging:
         # Only AIMessages (no HumanMessage) → _score_latest_pair returns None → keep prev
         state = _state(turn_count=2, messages=[AIMessage(content="Pytanie?")], hr_ai_suspicion=0.40)
         with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(65))):
-            result = await evaluate_hr(state)
+                   return_value=_mock_hr_llm(_hr_llm_response(65))):
+            with patch("src.graph.nodes.evaluate._make_detection_llm",
+                       return_value=_mock_detection_llm(0)):
+                result = await evaluate_hr(state)
         assert result["hr_ai_suspicion"] == 0.40
 
 
@@ -163,34 +175,55 @@ class TestAiSuspicionAveraging:
 # ---------------------------------------------------------------------------
 
 class TestAiPenaltyIntegration:
-    async def test_high_suspicion_reduces_score_to_fail(self):
-        # raw=65, ai_detection=90 → suspicion=0.90 → effective=65-30=35 → fail
+    async def test_high_suspicion_caps_score_to_25_then_minus_20(self):
+        # raw=65, detection=90 (0.90), turn_count=1 → avg=latest=0.90
+        # latest ≥ 0.85 → cap at 25; avg ≥ 0.85 → -20 → 5
         state = _state(turn_count=1, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(65), _ai_detection_response(90))):
+        with _patch_llms(hr_score=65, detection_score=90):
             result = await evaluate_hr(state)
         assert result["hr_score_raw"] == 65
-        assert result["hr_score"] == 35
+        assert result["hr_score"] == 5
         assert result["decision"] == "fail"
 
-    async def test_medium_suspicion_reduces_score(self):
-        # raw=70, ai_detection=55 → suspicion=0.55 → effective=70-15=55 → continue
-        state = _state(turn_count=1, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(70), _ai_detection_response(55))):
+    async def test_high_suspicion_caps_score_to_25_without_avg_penalty(self):
+        # raw=65, detection=90 (0.90), turn_count=2, prev=0.0
+        # avg = (0.0*1 + 0.90)/2 = 0.45 < 0.85 → only cap at 25, no -20
+        state = _state(turn_count=2, messages=_convo(1), hr_ai_suspicion=0.0)
+        with _patch_llms(hr_score=65, detection_score=90):
             result = await evaluate_hr(state)
-        assert result["hr_score_raw"] == 70
-        assert result["hr_score"] == 55
-        assert result["decision"] == "continue"
+        assert result["hr_score_raw"] == 65
+        assert result["hr_score"] == 25
+        assert result["decision"] == "fail"
+
+    async def test_medium_high_suspicion_caps_score_to_40(self):
+        # raw=65, detection=75 (0.75), turn_count=2, prev=0.0
+        # avg = (0.0*1 + 0.75)/2 = 0.375 < 0.85 → only cap at 40, no -20
+        state = _state(turn_count=2, messages=_convo(1), hr_ai_suspicion=0.0)
+        with _patch_llms(hr_score=65, detection_score=75):
+            result = await evaluate_hr(state)
+        assert result["hr_score_raw"] == 65
+        assert result["hr_score"] == 40
+        assert result["decision"] == "fail"
 
     async def test_low_suspicion_no_penalty(self):
-        # raw=70, ai_detection=20 → suspicion=0.20 → effective=70 → pass
+        # raw=70, ai_detection=20 (0.20) → no cap → pass
         state = _state(turn_count=1, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(70), _ai_detection_response(20))):
+        with _patch_llms(hr_score=70, detection_score=20):
             result = await evaluate_hr(state)
         assert result["hr_score_raw"] == 70
         assert result["hr_score"] == 70
+
+    async def test_avg_suspicion_subtracts_20(self):
+        # raw=65, detection=10 (0.10) latest → no latest cap
+        # prev=0.90, avg after turn_count=2: (0.90*1 + 0.10)/2 = 0.50 → no avg penalty
+        # Use high enough prev to trigger avg >= 0.85 after averaging
+        # prev=0.90, latest=0.90, turn_count=2: avg=(0.90*1+0.90)/2=0.90 ≥ 0.85 → -20
+        # latest=0.90 also ≥ 0.85 → cap at 25; then -20 → 5
+        state = _state(turn_count=2, messages=_convo(1), hr_ai_suspicion=0.90)
+        with _patch_llms(hr_score=65, detection_score=90):
+            result = await evaluate_hr(state)
+        assert result["hr_score_raw"] == 65
+        assert result["hr_score"] == 5   # min(65,25)=25, 25-20=5
 
 
 # ---------------------------------------------------------------------------
@@ -198,58 +231,49 @@ class TestAiPenaltyIntegration:
 # ---------------------------------------------------------------------------
 
 class TestStateTransitions:
-    async def test_pass_sets_hr_passed_stage(self):
+    async def test_pass_does_not_set_stage(self):
+        # pass routing is handled by the graph edge, not by evaluate_hr
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(80), _ai_detection_response(10))):
+        with _patch_llms(hr_score=80, detection_score=10):
             result = await evaluate_hr(state)
-        assert result["current_stage"] == "hr_passed"
+        assert "current_stage" not in result
 
     async def test_pass_clears_messages_no_transition_message(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(80), _ai_detection_response(10))):
+        with _patch_llms(hr_score=80, detection_score=10):
             result = await evaluate_hr(state)
-        # Only RemoveMessage entries — no new AIMessage added
         from langchain_core.messages import RemoveMessage
         assert all(isinstance(m, RemoveMessage) for m in result["messages"])
 
     async def test_fail_sets_hr_failed_stage(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(30), _ai_detection_response(10))):
+        with _patch_llms(hr_score=30, detection_score=10):
             result = await evaluate_hr(state)
         assert result["current_stage"] == "hr_failed"
 
     async def test_fail_sets_game_over(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(30), _ai_detection_response(10))):
+        with _patch_llms(hr_score=30, detection_score=10):
             result = await evaluate_hr(state)
         assert result["game_over"] is True
 
     async def test_fail_clears_messages_no_farewell(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(30), _ai_detection_response(10))):
+        with _patch_llms(hr_score=30, detection_score=10):
             result = await evaluate_hr(state)
         from langchain_core.messages import RemoveMessage
         assert all(isinstance(m, RemoveMessage) for m in result["messages"])
 
     async def test_continue_does_not_set_stage(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(_hr_llm_response(60), _ai_detection_response(10))):
+        with _patch_llms(hr_score=60, detection_score=10):
             result = await evaluate_hr(state)
         assert "current_stage" not in result
 
     async def test_feedback_and_summary_stored(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with patch("src.graph.nodes.evaluate._make_llm",
-                   return_value=_patched_llm(
-                       _hr_llm_response(65, feedback="Dobra odpowiedź", summary="Kandydat zaangażowany"),
-                       _ai_detection_response(10),
-                   )):
+        with _patch_llms(hr_score=65, detection_score=10,
+                         hr_feedback="Dobra odpowiedź", hr_summary="Kandydat zaangażowany"):
             result = await evaluate_hr(state)
         assert result["hr_feedback"] == "Dobra odpowiedź"
         assert result["hr_summary"] == "Kandydat zaangażowany"
