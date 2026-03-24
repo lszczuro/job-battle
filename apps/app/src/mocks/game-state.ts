@@ -36,7 +36,6 @@ export const MOCK_STATE_HR: Record<string, unknown> = {
   hr_score: null,
   hr_score_raw: null,
   hr_feedback: null,
-  hr_summary: null,
   final_summary: null,
 };
 
@@ -50,8 +49,6 @@ export const MOCK_STATE_HR_FAILED_AI: Record<string, unknown> = {
   hr_ai_suspicion: 0.91,
   hr_feedback:
     "Odpowiedzi miały strukturę typową dla modeli językowych — nadmiernie rozbudowane, z wieloma punktami i powtarzającymi się frazami.",
-  hr_summary:
-    "System wykrył wzorce charakterystyczne dla AI. Kandydatura odrzucona.",
   final_summary: null,
 };
 
@@ -64,8 +61,6 @@ export const MOCK_STATE_OFFER: Record<string, unknown> = {
   hr_ai_suspicion: 0.05,
   hr_feedback:
     "Wyjątkowa rozmowa. Kandydat wyróżnił się autentycznością, konkretnymi przykładami i pasją do technologii. Zdecydowanie rekomendujemy do kolejnego etapu.",
-  hr_summary:
-    "Doskonałe dopasowanie do kultury firmy i wymagań stanowiska.",
   final_summary:
     "Gratulacje! Twoja odpowiedź na pytanie o największe wyzwanie techniczne szczególnie przekonała rekruterkę. Wyróżniłeś się spośród innych kandydatów autentycznością i precyzją myślenia. Czekamy na Ciebie w NovaTech!",
 };
@@ -79,7 +74,6 @@ export const MOCK_STATE_REJECTED: Record<string, unknown> = {
   hr_ai_suspicion: 0.12,
   hr_feedback:
     "Kandydat wykazał się podstawową wiedzą, jednak odpowiedzi były zbyt schematyczne. Brakowało przykładów i głębszej refleksji nad doświadczeniem.",
-  hr_summary: "Na tym etapie nie spełnił oczekiwań rekrutera.",
   final_summary:
     "Niestety tym razem nie udało się przejść etapu HR. Wynik 48/100 jest poniżej progu kwalifikacji (70). Wróć za jakiś czas i spróbuj ponownie — każda rozmowa to cenne doświadczenie!",
 };

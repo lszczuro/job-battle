@@ -11,7 +11,6 @@ export function HRFailedScreen({
   const hrScore = state?.hr_score as number | null;
   const hrScoreRaw = state?.hr_score_raw as number | null;
   const hrFeedback = state?.hr_feedback as string | null;
-  const hrSummary = state?.hr_summary as string | null;
   const hrAiSuspicion = state?.hr_ai_suspicion as number | null;
   const hrAiRejected = state?.hr_ai_rejected as boolean | null;
   const offer = state?.selected_offer as Record<string, unknown> | null;
@@ -77,7 +76,6 @@ export function HRFailedScreen({
         )}
 
         {hrFeedback && !aiDetected && <FeedbackBlock label="Ocena rekrutera" text={hrFeedback} />}
-        {hrSummary && !aiDetected && <FeedbackBlock label="Podsumowanie" text={hrSummary} />}
 
         <button
           onClick={onRestart}

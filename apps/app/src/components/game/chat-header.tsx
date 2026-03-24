@@ -113,7 +113,7 @@ export function HRChatHeader({ offer, isRunning }: { offer: Record<string, unkno
       isRunning={isRunning}
       name="Anna Kowalska"
       title="HR Manager"
-      avatarContent="dynamic"
+      avatarContent="AK"
       avatarGradient="linear-gradient(135deg, #3b4fd8 0%, #6d28d9 100%)"
       accentColor="#60a5fa"
       accentRgb="59,130,246"

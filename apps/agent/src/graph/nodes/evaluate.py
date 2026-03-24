@@ -33,8 +33,7 @@ Score poniżej 40 NIE jest karą za krótką odpowiedź — tylko za wrogość, 
 Zwróć TYLKO JSON:
 {{
   "score": int (1-100),
-  "feedback": str (1 zdanie co poszło dobrze/źle),
-  "hr_summary": str (2-3 zdania: dopasowanie kulturowe, motywacja, red flagi lub plusy)
+  "feedback": str (1 zdanie co poszło dobrze/źle)
 }}\
 """
 
@@ -230,7 +229,6 @@ async def evaluate_hr(state: GameState) -> dict:
         "hr_ai_suspicion": ai_suspicion,
         "hr_ai_rejected": ai_rejection_triggered,
         "hr_feedback": hr_eval["feedback"],
-        "hr_summary": hr_eval.get("hr_summary"),
         "decision": decision,
     }
 

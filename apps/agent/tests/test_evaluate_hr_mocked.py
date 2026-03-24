@@ -17,11 +17,10 @@ from src.graph.state import GameState
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _hr_llm_response(score: int, feedback: str = "ok", summary: str = "good") -> AIMessage:
+def _hr_llm_response(score: int, feedback: str = "ok") -> AIMessage:
     return AIMessage(content=json.dumps({
         "score": score,
         "feedback": feedback,
-        "hr_summary": summary,
     }))
 
 
@@ -57,7 +56,6 @@ def _state(
         "hr_score": None,
         "hr_score_raw": None,
         "hr_feedback": None,
-        "hr_summary": None,
         "tech_score": None,
         "tech_feedback": None,
         "final_summary": None,
@@ -80,10 +78,10 @@ def _mock_detection_llm(detection_score: int) -> AsyncMock:
 
 
 @contextmanager
-def _patch_llms(hr_score: int, detection_score: int, hr_feedback: str = "ok", hr_summary: str = "good"):
+def _patch_llms(hr_score: int, detection_score: int, hr_feedback: str = "ok"):
     """Patch both LLM factories with canned responses."""
     with patch("src.graph.nodes.evaluate._make_llm",
-               return_value=_mock_hr_llm(_hr_llm_response(hr_score, hr_feedback, hr_summary))):
+               return_value=_mock_hr_llm(_hr_llm_response(hr_score, hr_feedback))):
         with patch("src.graph.nodes.evaluate._make_detection_llm",
                    return_value=_mock_detection_llm(detection_score)):
             yield
@@ -270,13 +268,11 @@ class TestStateTransitions:
             result = await evaluate_hr(state)
         assert "current_stage" not in result
 
-    async def test_feedback_and_summary_stored(self):
+    async def test_feedback_stored(self):
         state = _state(turn_count=2, messages=_convo(1))
-        with _patch_llms(hr_score=65, detection_score=10,
-                         hr_feedback="Dobra odpowiedź", hr_summary="Kandydat zaangażowany"):
+        with _patch_llms(hr_score=65, detection_score=10, hr_feedback="Dobra odpowiedź"):
             result = await evaluate_hr(state)
         assert result["hr_feedback"] == "Dobra odpowiedź"
-        assert result["hr_summary"] == "Kandydat zaangażowany"
 
 
 # ---------------------------------------------------------------------------

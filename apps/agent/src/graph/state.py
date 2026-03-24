@@ -21,9 +21,6 @@ class GameState(TypedDict):
     user_preference: str | None
     selected_offer: OfferCard | None
 
-    # Podsumowania przekazywane między etapami
-    hr_summary: str | None
-
     # Wybrana oferta (kopiowane z selected_offer dla wygody)
     company_name: str | None
     target_role: str | None
