@@ -26,7 +26,7 @@ export function HRPassedScreen({
     >
       <div className="w-full max-w-xl flex flex-col gap-5">
 
-        <ProgressTracker hr="done" tech="next" wynik="pending" />
+        <ProgressTracker hr="done" wynik="pending" />
 
         {offer && <OfferCard offer={offer} />}
 

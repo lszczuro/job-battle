@@ -10,7 +10,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>
+      <body className={`antialiased h-screen overflow-hidden`}>
         <ThemeProvider>
             {children}
         </ThemeProvider>
