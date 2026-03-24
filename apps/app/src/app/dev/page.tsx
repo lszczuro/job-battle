@@ -12,12 +12,6 @@ const SCREENS = [
     stage: "hr",
   },
   {
-    slug: "hr-failed-ai",
-    label: "HR oblane (AI)",
-    description: "Overlay — wykryto użycie AI",
-    stage: "hr_failed + hr_ai_rejected",
-  },
-  {
     slug: "offer",
     label: "Oferta pracy",
     description: "Ekran końcowy — kandydat dostał ofertę",
@@ -28,6 +22,12 @@ const SCREENS = [
     label: "Odrzucony",
     description: "Ekran końcowy — kandydat odrzucony",
     stage: "rejected",
+  },
+    {
+    slug: "rejected-ai",
+    label: "HR oblane (AI)",
+    description: "Overlay — wykryto użycie AI",
+    stage: "rejected + hr_ai_rejected",
   },
 ];
 

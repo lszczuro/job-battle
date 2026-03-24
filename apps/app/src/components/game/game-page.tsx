@@ -124,17 +124,12 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
         </div>
       </div>
 
-      {isRejected && Boolean(state?.hr_ai_rejected) && (
-        <div className="absolute inset-0 z-20">
-          <GameResultScreen state={state} type="hr_failed" onRestart={onRestart} />
-        </div>
-      )}
       {isOffer && (
         <div className="absolute inset-0 z-20">
           <GameResultScreen state={state} type="offer" onRestart={onRestart} />
         </div>
       )}
-      {isRejected && !Boolean(state?.hr_ai_rejected) && (
+      {isRejected && (
         <div className="absolute inset-0 z-20">
           <GameResultScreen state={state} type="rejected" onRestart={onRestart} />
         </div>

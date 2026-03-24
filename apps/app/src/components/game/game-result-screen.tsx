@@ -39,7 +39,7 @@ export function GameResultScreen({
   onRestart,
 }: {
   state: Record<string, unknown> | null;
-  type: "offer" | "rejected" | "hr_failed";
+  type: "offer" | "rejected";
   onRestart: () => void;
 }) {
   const hrScore = state?.hr_score as number | null;
@@ -50,18 +50,17 @@ export function GameResultScreen({
   const offer = state?.selected_offer as Record<string, unknown> | null;
 
   const isOffer = type === "offer";
-  const isHrFailed = type === "hr_failed";
-  const aiDetected = isHrFailed && hrAiRejected === true;
+  const aiDetected = !isOffer && hrAiRejected === true;
   const aiSuspicionPct = hrAiSuspicion !== null ? Math.round(hrAiSuspicion * 100) : null;
 
   const hrColors = (() => {
-    if (isHrFailed || hrScore === null) return { text: "var(--status-error)", bg: "var(--status-error-bg)", border: "var(--status-error-border)" };
+    if (aiDetected || hrScore === null) return { text: "var(--status-error)", bg: "var(--status-error-bg)", border: "var(--status-error-border)" };
     if (hrScore >= 70) return { text: "var(--status-success)", bg: "var(--status-success-bg)", border: "var(--status-success-border)" };
     if (hrScore >= 50) return { text: "var(--status-warning)", bg: "var(--status-warning-bg)", border: "var(--status-warning-border)" };
     return { text: "var(--status-error)", bg: "var(--status-error-bg)", border: "var(--status-error-border)" };
   })();
 
-  const progressHr = isHrFailed ? "failed" : "done";
+  const progressHr = aiDetected ? "failed" : "done";
   const progressWynik = isOffer ? "done" : "failed";
 
   return (
@@ -122,7 +121,7 @@ export function GameResultScreen({
 
         {isOffer && finalSummary && <FeedbackBlock label="Gratulacje" text={finalSummary} />}
         {type === "rejected" && finalSummary && <FeedbackBlock label="Podsumowanie" text={finalSummary} />}
-        {isHrFailed && hrFeedback && !aiDetected && <FeedbackBlock label="Ocena rekrutera" text={hrFeedback} />}
+        {!isOffer && hrFeedback && !aiDetected && <FeedbackBlock label="Ocena rekrutera" text={hrFeedback} />}
 
         {isOffer && <LinkedInShareButton state={state} />}
 
