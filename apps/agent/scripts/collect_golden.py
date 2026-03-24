@@ -163,7 +163,7 @@ async def collect_hr_eval():
             HumanMessage(content=case["answer"]),
         ]
         response = await llm.ainvoke(messages)
-        data = json.loads(response.content)
+        data = json.loads(str(response.content))
         result = {**case, "llm_score": data["score"], "llm_feedback": data["feedback"]}
         results.append(result)
         lo, hi = case["expected_range"]
