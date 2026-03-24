@@ -2,7 +2,7 @@ import json
 import os
 import uuid
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.graph.state import GameState, OfferCard
 from pydantic import SecretStr
 
@@ -16,12 +16,21 @@ SYSTEM_PROMPT = (
 )
 
 async def generate_offers(state: GameState) -> dict:
-    print(f"[generate_offers] called, user_preference={state.get('user_preference')!r}", flush=True)
     preference = state.get("user_preference")
+
+    # Fall back to last human message from chat
+    if not preference:
+        for msg in reversed(state.get("messages", [])):
+            if isinstance(msg, HumanMessage):
+                preference = str(msg.content)
+                break
+
+    print(f"[generate_offers] called, preference={preference!r}", flush=True)
 
     if not preference:
         return {
             "current_stage": "offer_selection",
+            "messages": [AIMessage(content="Cześć! Opisz czego szukasz — stanowisko, technologie, miasto — a znajdę dopasowane oferty. 🔍")],
         }
 
     llm = ChatOpenAI(
@@ -64,4 +73,14 @@ async def generate_offers(state: GameState) -> dict:
     return {
         "available_offers": offers,
         "current_stage": "offer_selection",
+        "messages": [
+            AIMessage(
+                content="",
+                tool_calls=[{
+                    "id": str(uuid.uuid4()),
+                    "name": "show_job_offers",
+                    "args": {"offers": offers},
+                }],
+            )
+        ],
     }

@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRenderTool, CopilotChat } from "@copilotkit/react-core/v2";
 import { OfferCardItem, OfferCard } from "./offer-card";
+import { useState } from "react";
+import { z } from "zod";
+
+const offerSchema = z.object({
+  id: z.string(),
+  company_name: z.string(),
+  target_role: z.string(),
+  company_vibe: z.string(),
+  emoji: z.string(),
+  tech_stack: z.array(z.string()),
+});
 
 const PRESET_OFFERS: OfferCard[] = [
   {
@@ -27,111 +38,91 @@ const PRESET_OFFERS: OfferCard[] = [
     company_vibe: "korporacja, AI/ML, Wrocław, 500 os.",
     emoji: "🤖",
     tech_stack: ["Python", "PyTorch", "MLflow", "AWS", "Spark"],
-  }
+  },
 ];
 
 interface OfferBoardProps {
   onSelectOffer: (offer: OfferCard) => void;
 }
 
-export function OfferBoard({ onSelectOffer }: OfferBoardProps) {
-  const [offers, setOffers] = useState<OfferCard[]>(PRESET_OFFERS);
-  const [input, setInput] = useState("");
-  const [isPending, startTransition] = useTransition();
-  const [isSelecting, setIsSelecting] = useState(false);
+interface WelcomeScreenProps {
+  input: React.ReactNode;
+  onSelectOffer: (offer: OfferCard) => void;
+  isSelecting: boolean;
+}
 
-  const handleRegenerate = () => {
-    if (!input.trim() || isPending) return;
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/generate-offers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ preference: input }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.offers?.length) setOffers(data.offers);
-        }
-      } catch (e) {
-        // keep current offers on error
-      }
-    });
-  };
+function WelcomeScreen({ input, onSelectOffer, isSelecting }: WelcomeScreenProps) {
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 py-8">
+        {/* Intro */}
+        <div className="text-center mb-8 max-w-sm">
+          <div className="text-4xl mb-3">💼</div>
+          <h2 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+            Witaj w Job Battle!
+          </h2>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+            Wciel się w kandydata i przejdź rozmowę rekrutacyjną z AI.
+            Wybierz gotową ofertę poniżej lub opisz czego szukasz — znajdziemy
+            dopasowane stanowisko.
+          </p>
+        </div>
+
+        {/* Section label */}
+        <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: "var(--muted-foreground)" }}>
+          Gotowe oferty
+        </p>
+
+        {/* Preset cards */}
+        <div className="flex flex-wrap gap-6 justify-center">
+          {PRESET_OFFERS.map((offer, i) => (
+            <OfferCardItem
+              key={offer.id}
+              card={offer}
+              index={i}
+              onSelect={onSelectOffer}
+              isLoading={isSelecting}
+            />
+          ))}
+        </div>
+
+        <p className="text-xs mt-8" style={{ color: "var(--muted-foreground)" }}>
+          albo wpisz swoje preferencje poniżej ↓
+        </p>
+      </div>
+
+      {/* Input passed from CopilotChat */}
+      {input}
+    </div>
+  );
+}
+
+export function OfferBoard({ onSelectOffer }: OfferBoardProps) {
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const handleSelect = (offer: OfferCard) => {
     setIsSelecting(true);
     onSelectOffer(offer);
   };
 
-  return (
-    <div
-      className="min-h-screen w-full flex flex-col items-center py-10 px-6"
-      style={{
-        background: "radial-gradient(ellipse at 60% 0%, #fde68a22 0%, transparent 60%), #f5f0e8",
-        backgroundImage:
-          "radial-gradient(ellipse at 60% 0%, #fde68a22 0%, transparent 60%), linear-gradient(135deg, #f5f0e8 0%, #ede8df 100%)",
-      }}
-    >
-      {/* Header */}
-      <div className="text-center mb-8 max-w-xl">
-        <div className="text-4xl mb-3">💼</div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Job Battle</h1>
-        <p className="text-gray-500 text-sm">
-          Wybierz ofertę i wejdź w rolę kandydata. Przejdź przez rozmowę HR i techniczną.
-        </p>
-      </div>
-
-      {/* Input + Regenerate */}
-      <div className="flex gap-2 mb-10 w-full max-w-md">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleRegenerate()}
-          placeholder="Np. senior devops, fullstack JS, machine learning..."
-          disabled={isPending || isSelecting}
-          className="flex-1 px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] disabled:opacity-60"
-        />
-        <button
-          onClick={handleRegenerate}
-          disabled={!input.trim() || isPending || isSelecting}
-          className="px-4 py-2.5 rounded-lg bg-[var(--primary)] hover:opacity-90 text-[var(--primary-foreground)] text-sm font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-        >
-          {isPending ? (
-            <span className="animate-spin">↻</span>
-          ) : (
-            <>↻ Regeneruj</>
-          )}
-        </button>
-      </div>
-
-      {/* Cork board */}
-      <div
-        className="relative w-full max-w-5xl rounded-2xl p-10 shadow-inner"
-        style={{
-          background: "linear-gradient(135deg, #c8a06e 0%, #b8894f 100%)",
-          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.15)",
-        }}
-      >
-        {/* Cork texture overlay */}
-        <div
-          className="absolute inset-0 rounded-2xl opacity-30"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px), repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px)",
-          }}
-        />
-
-        {isPending ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="text-4xl animate-bounce mb-3">🔍</div>
-              <p className="text-[var(--primary-foreground)] font-medium">Szukam dopasowanych ofert...</p>
+  useRenderTool(
+    {
+      name: "show_job_offers",
+      parameters: z.object({ offers: z.array(offerSchema) }),
+      render: ({ parameters }) => {
+        const offers = parameters.offers ?? [];
+        if (offers.length === 0) {
+          return (
+            <div className="flex items-center gap-2 py-4 px-2">
+              <span className="text-2xl animate-bounce">🔍</span>
+              <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+                Szukam ofert...
+              </span>
             </div>
-          </div>
-        ) : (
-          <div className="relative flex flex-wrap gap-8 justify-center items-start py-4">
+          );
+        }
+        return (
+          <div className="flex flex-wrap gap-6 justify-center py-4 px-2">
             {offers.map((offer, i) => (
               <OfferCardItem
                 key={offer.id}
@@ -142,12 +133,40 @@ export function OfferBoard({ onSelectOffer }: OfferBoardProps) {
               />
             ))}
           </div>
-        )}
-      </div>
+        );
+      },
+    },
+    [isSelecting, handleSelect],
+  );
 
-      <p className="text-[var(--muted-foreground)] text-xs mt-6">
-        Kliknij karteczkę, żeby rozpocząć grę jako kandydat na to stanowisko
-      </p>
+  return (
+    <div className="h-full flex flex-col">
+      <div
+        className="px-4 py-3 shrink-0 flex items-center gap-2"
+        style={{ borderBottom: "1px solid var(--border)", background: "var(--card)" }}
+      >
+        <span className="text-lg">💼</span>
+        <div>
+          <div className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+            Job Battle
+          </div>
+          <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Wybierz ofertę lub opisz czego szukasz
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <CopilotChat
+          welcomeScreen={({ input }: { input: React.ReactNode }) => (
+            <WelcomeScreen
+              input={input}
+              onSelectOffer={handleSelect}
+              isSelecting={isSelecting}
+            />
+          )}
+          input={{ disclaimer: () => null, className: "pb-4" }}
+        />
+      </div>
     </div>
   );
 }

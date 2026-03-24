@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAgent } from "@copilotkit/react-core/v2";
 import { CopilotChat } from "@copilotkit/react-core/v2";
 import { OfferBoard } from "@/components/offer-board";
@@ -12,6 +12,7 @@ import { GameResultScreen } from "./game-result-screen";
 export function GamePage({ onRestart }: { onRestart: () => void }) {
   const { agent } = useAgent();
   const [gameStarted, setGameStarted] = useState(false);
+  const hrStartedRef = useRef(false);
 
   const state = agent.state as Record<string, unknown> | null;
   const stage = (state?.current_stage as string) ?? "hr";
@@ -36,7 +37,8 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
   };
 
   useEffect(() => {
-    if (gameStarted && agent.messages.length === 0 && !agent.isRunning) {
+    if (gameStarted && !hrStartedRef.current && !agent.isRunning) {
+      hrStartedRef.current = true;
       agent.runAgent();
     }
   }, [gameStarted]);
