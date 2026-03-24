@@ -10,7 +10,6 @@ const showJobOffersSchema = z.object({ offers: z.array(offerSchema) });
 import type { OfferCard } from "@/components/offer-board/offer-card";
 import { OfferCardItem } from "@/components/offer-board/offer-card";
 import { HRChatHeader } from "./chat-header";
-import { HRFailedScreen } from "./hr-failed-screen";
 import { GameResultScreen } from "./game-result-screen";
 
 export function GamePage({ onRestart }: { onRestart: () => void }) {
@@ -127,7 +126,7 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
 
       {isRejected && Boolean(state?.hr_ai_rejected) && (
         <div className="absolute inset-0 z-20">
-          <HRFailedScreen state={state} onRestart={onRestart} />
+          <GameResultScreen state={state} type="hr_failed" onRestart={onRestart} />
         </div>
       )}
       {isOffer && (

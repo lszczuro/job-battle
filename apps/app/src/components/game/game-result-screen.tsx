@@ -39,21 +39,30 @@ export function GameResultScreen({
   onRestart,
 }: {
   state: Record<string, unknown> | null;
-  type: "offer" | "rejected";
+  type: "offer" | "rejected" | "hr_failed";
   onRestart: () => void;
 }) {
   const hrScore = state?.hr_score as number | null;
   const finalSummary = state?.final_summary as string | null;
+  const hrFeedback = state?.hr_feedback as string | null;
+  const hrAiSuspicion = state?.hr_ai_suspicion as number | null;
+  const hrAiRejected = state?.hr_ai_rejected as boolean | null;
   const offer = state?.selected_offer as Record<string, unknown> | null;
 
   const isOffer = type === "offer";
+  const isHrFailed = type === "hr_failed";
+  const aiDetected = isHrFailed && hrAiRejected === true;
+  const aiSuspicionPct = hrAiSuspicion !== null ? Math.round(hrAiSuspicion * 100) : null;
 
   const hrColors = (() => {
-    if (hrScore === null) return { text: "var(--muted-foreground)", bg: "var(--muted)", border: "var(--border)" };
+    if (isHrFailed || hrScore === null) return { text: "var(--status-error)", bg: "var(--status-error-bg)", border: "var(--status-error-border)" };
     if (hrScore >= 70) return { text: "var(--status-success)", bg: "var(--status-success-bg)", border: "var(--status-success-border)" };
     if (hrScore >= 50) return { text: "var(--status-warning)", bg: "var(--status-warning-bg)", border: "var(--status-warning-border)" };
     return { text: "var(--status-error)", bg: "var(--status-error-bg)", border: "var(--status-error-border)" };
   })();
+
+  const progressHr = isHrFailed ? "failed" : "done";
+  const progressWynik = isOffer ? "done" : "failed";
 
   return (
     <div
@@ -62,15 +71,39 @@ export function GameResultScreen({
     >
       <div className="w-full max-w-xl flex flex-col gap-5">
 
-        <ProgressTracker hr="done" wynik={isOffer ? "done" : "failed"} />
+        <ProgressTracker hr={progressHr} wynik={progressWynik} />
 
         {offer && <OfferCard offer={offer} />}
 
         <ResultHeader
-          emoji={isOffer ? "🏆" : "😔"}
-          title={isOffer ? "Otrzymałeś ofertę pracy!" : "Nie tym razem"}
-          subtitle={isOffer ? "Gratulacje — wyróżniłeś się w rozmowie HR!" : "Nie przeszedłeś etapu HR — spróbuj ponownie"}
+          emoji={isOffer ? "🏆" : aiDetected ? "🤖" : "😔"}
+          title={isOffer ? "Otrzymałeś ofertę pracy!" : aiDetected ? "Wykryto użycie AI" : "Nie tym razem"}
+          subtitle={
+            isOffer
+              ? "Gratulacje — wyróżniłeś się w rozmowie HR!"
+              : aiDetected
+              ? "Kandydatura odrzucona z powodu nieuczciwości"
+              : "Nie przeszedłeś etapu HR — spróbuj ponownie"
+          }
         />
+
+        {aiDetected && (
+          <div
+            className="rounded-xl px-5 py-4 flex flex-col gap-2"
+            style={{ background: "var(--status-ai-bg)", border: "1px solid var(--status-ai-border)" }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <p className="text-sm font-semibold" style={{ color: "var(--status-ai)" }}>
+                Podejrzenie oszustwa — użycie AI
+              </p>
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+              System wykrył z {aiSuspicionPct}% pewnością, że odpowiedzi zostały wygenerowane
+              przez AI. Kandydatura została odrzucona niezależnie od treści odpowiedzi.
+            </p>
+          </div>
+        )}
 
         {hrScore !== null && (
           <div
@@ -87,7 +120,9 @@ export function GameResultScreen({
           </div>
         )}
 
-        {finalSummary && <FeedbackBlock label={isOffer ? "Gratulacje" : "Podsumowanie"} text={finalSummary} />}
+        {isOffer && finalSummary && <FeedbackBlock label="Gratulacje" text={finalSummary} />}
+        {type === "rejected" && finalSummary && <FeedbackBlock label="Podsumowanie" text={finalSummary} />}
+        {isHrFailed && hrFeedback && !aiDetected && <FeedbackBlock label="Ocena rekrutera" text={hrFeedback} />}
 
         {isOffer && <LinkedInShareButton state={state} />}
 
@@ -96,7 +131,7 @@ export function GameResultScreen({
           className="w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98] bg-[var(--secondary)] text-[var(--secondary-foreground)]"
           style={{ border: "1px solid var(--border)" }}
         >
-          Zagraj ponownie →
+          {isOffer ? "Zagraj ponownie →" : "Spróbuj z inną ofertą →"}
         </button>
 
       </div>
