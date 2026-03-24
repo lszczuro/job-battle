@@ -7,79 +7,91 @@ export interface OfferCard {
   company_vibe: string;
   emoji: string;
   tech_stack: string[];
+  difficulty?: number; // 1-5
+  company_quote?: string;
 }
-
-const CARD_COLORS = [
-  { bg: "bg-yellow-100", border: "border-yellow-300", pin: "bg-yellow-400" },
-  { bg: "bg-blue-100", border: "border-blue-300", pin: "bg-blue-400" },
-  { bg: "bg-green-100", border: "border-green-300", pin: "bg-green-400" },
-  { bg: "bg-pink-100", border: "border-pink-300", pin: "bg-pink-400" },
-  { bg: "bg-purple-100", border: "border-purple-300", pin: "bg-purple-400" },
-];
 
 interface OfferCardProps {
   card: OfferCard;
-  index: number;
   onSelect: (card: OfferCard) => void;
   isLoading?: boolean;
 }
 
-export function OfferCardItem({ card, index, onSelect, isLoading }: OfferCardProps) {
-  const color = CARD_COLORS[index % CARD_COLORS.length];
-  const rotation = (index % 3 === 0 ? -1.5 : index % 3 === 1 ? 1 : -0.5) + (index % 2 === 0 ? 0.5 : -0.3);
+function StarRating({ value, max = 5 }: { value: number; max?: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: max }).map((_, i) => (
+        <span key={i} style={{ color: i < value ? "#facc15" : "var(--border)", fontSize: 11 }}>
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export function OfferCardItem({ card, onSelect, isLoading }: OfferCardProps) {
+  const difficulty = card.difficulty ?? 3;
 
   return (
     <button
       onClick={() => !isLoading && onSelect(card)}
       disabled={isLoading}
-      style={{ transform: `rotate(${rotation}deg)` }}
-      className={`
-        relative group cursor-pointer
-        ${color.bg} ${color.border}
-        border-2 rounded-sm shadow-md
-        p-5 w-64 min-h-52
-        transition-all duration-200
-        hover:scale-105 hover:shadow-xl hover:z-10 hover:-translate-y-1
-        disabled:opacity-60 disabled:cursor-not-allowed
-        text-left
-      `}
+      className="group w-full text-left rounded-xl border p-3 transition-all duration-200 hover:shadow-md hover:z-10 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+      style={{ background: "var(--card)", borderColor: "var(--border)" }}
     >
-      {/* Pin */}
-      <div
-        className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-5 h-5 ${color.pin} rounded-full shadow-sm border border-white/50`}
-      />
+      <div className="flex items-start gap-3">
+        {/* Emoji */}
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 mt-0.5"
+          style={{ background: "var(--muted)" }}
+        >
+          {card.emoji}
+        </div>
 
-      {/* Emoji */}
-      <div className="text-4xl mb-3">{card.emoji}</div>
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-0.5">
+            <h3 className="font-semibold text-sm leading-tight" style={{ color: "var(--foreground)" }}>
+              {card.target_role}
+            </h3>
+            <StarRating value={difficulty} />
+          </div>
 
-      {/* Role */}
-      <h3 className="font-bold text-gray-800 text-sm leading-tight mb-1">
-        {card.target_role}
-      </h3>
+          <p className="text-xs mb-1.5" style={{ color: "var(--muted-foreground)" }}>
+            {card.company_name}
+          </p>
 
-      {/* Company */}
-      <p className="font-semibold text-gray-700 text-xs mb-2">{card.company_name}</p>
+          <p className="text-xs mb-1" style={{ color: "var(--muted-foreground)" }}>
+            {card.company_vibe}
+          </p>
 
-      {/* Vibe */}
-      <p className="text-gray-500 text-xs leading-tight mb-3">{card.company_vibe}</p>
+          {card.company_quote && (
+            <p className="text-xs italic mb-2 leading-snug line-clamp-2 sm:line-clamp-none" style={{ color: "var(--muted-foreground)" }}>
+              "{card.company_quote}"
+            </p>
+          )}
 
-      {/* Tech stack tags */}
-      <div className="flex flex-wrap gap-1">
-        {card.tech_stack.slice(0, 4).map((tech) => (
-          <span
-            key={tech}
-            className="bg-white/70 text-gray-600 text-[10px] px-1.5 py-0.5 rounded font-medium"
-          >
-            {tech}
-          </span>
-        ))}
-      </div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1">
+              {card.tech_stack.slice(0, 4).map((tech) => (
+                <span
+                  key={tech}
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                  style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
 
-      {/* Hover overlay */}
-      <div className="absolute inset-0 rounded-sm bg-[var(--primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-        <span className="bg-[var(--card)] text-[var(--foreground)] text-xs font-semibold px-3 py-1.5 rounded-full shadow">
-          Wybieram →
-        </span>
+            <span
+              className="text-xs font-semibold shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: "var(--foreground)" }}
+            >
+              Aplikuj →
+            </span>
+          </div>
+        </div>
       </div>
     </button>
   );

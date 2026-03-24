@@ -4,7 +4,12 @@ import uuid
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.graph.state import GameState, OfferCard
+from langchain_core.tracers import LangChainTracer
 from pydantic import SecretStr
+
+def _ls_callbacks() -> list:
+    """LangSmith-only callback — visible in LangSmith traces, invisible to CopilotKit UI."""
+    return [LangChainTracer()]
 
 
 SYSTEM_PROMPT = (
@@ -45,7 +50,7 @@ async def generate_offers(state: GameState) -> dict:
         SystemMessage(content=SYSTEM_PROMPT),
         HumanMessage(content=f"Preferencje użytkownika: {preference}"),
     ]
-    response = await llm.ainvoke(messages)
+    response = await llm.ainvoke(messages, config={"callbacks": _ls_callbacks()})
 
     raw = json.loads(str(response.content))
     # LLM may return {"offers": [...]} or just [...]
