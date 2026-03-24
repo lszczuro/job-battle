@@ -73,7 +73,7 @@ export function OfferCardItem({ card, onSelect, isLoading }: OfferCardProps) {
 
           <div className="flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1">
-              {card.tech_stack.slice(0, 4).map((tech) => (
+              {card.tech_stack.slice(0, 5).map((tech) => (
                 <span
                   key={tech}
                   className="text-[10px] px-1.5 py-0.5 rounded font-medium"
@@ -83,13 +83,6 @@ export function OfferCardItem({ card, onSelect, isLoading }: OfferCardProps) {
                 </span>
               ))}
             </div>
-
-            <span
-              className="text-xs font-semibold shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: "var(--foreground)" }}
-            >
-              Aplikuj →
-            </span>
           </div>
         </div>
       </div>
