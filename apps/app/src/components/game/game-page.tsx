@@ -27,9 +27,6 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
     setIsSelecting(true);
     agent.setState({
       selected_offer: offer,
-      company_name: offer.company_name,
-      target_role: offer.target_role,
-      company_vibe: offer.company_vibe,
       tech_stack: offer.tech_stack,
       current_stage: "hr",
       turn_count: 0,

@@ -3,7 +3,7 @@ import os
 import uuid
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from src.graph.state import GameState, OfferCard
+from src.graph.state import GameState, OfferCard, Stage
 from langchain_core.tracers import LangChainTracer
 from pydantic import SecretStr
 
@@ -21,6 +21,7 @@ SYSTEM_PROMPT = (
 )
 
 async def generate_offers(state: GameState) -> dict:
+    stage: Stage = "offer_selection"
     preference = state.get("user_preference")
 
     # Fall back to last human message from chat
@@ -34,7 +35,7 @@ async def generate_offers(state: GameState) -> dict:
 
     if not preference:
         return {
-            "current_stage": "offer_selection",
+            "current_stage": stage,
             "messages": [AIMessage(content="Cześć! Opisz czego szukasz — stanowisko, technologie, miasto — a znajdę dopasowane oferty. 🔍")],
         }
 
@@ -76,8 +77,7 @@ async def generate_offers(state: GameState) -> dict:
         )
 
     return {
-        "available_offers": offers,
-        "current_stage": "offer_selection",
+        "current_stage": stage,
         "messages": [
             AIMessage(
                 content="",

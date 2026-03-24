@@ -20,7 +20,7 @@ async def tech_agent(state: GameState) -> dict:
         "Jesteś doświadczonym technical interviewerem.\n"
         "Przeprowadzasz rozmowę techniczną z kandydatem.\n\n"
         f"Umiejętności do sprawdzenia u kandydata: {skills}\n"
-        f"Stanowisko: {state.get('target_role') or 'nieznane'} w {state.get('company_name') or 'nieznanej firmie'}\n\n"
+        f"Stanowisko: {(state.get('selected_offer') or {}).get('target_role') or 'nieznane'} w {(state.get('selected_offer') or {}).get('company_name') or 'nieznanej firmie'}\n\n"
         "Zadawaj pytania techniczne dostosowane do doświadczenia kandydata.\n"
         "Pytaj o konkretne projekty, problemy techniczne, decyzje architektoniczne.\n"
         "Bądź dociekliwy ale fair. Zadawaj jedno pytanie na raz."

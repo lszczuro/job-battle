@@ -34,7 +34,6 @@ export const MOCK_STATE_HR: Record<string, unknown> = {
   ...BASE_STATE,
   current_stage: "hr",
   hr_score: null,
-  hr_score_raw: null,
   hr_feedback: null,
   final_summary: null,
 };
@@ -44,7 +43,6 @@ export const MOCK_STATE_HR_FAILED_AI: Record<string, unknown> = {
   ...BASE_STATE,
   current_stage: "hr_failed",
   hr_score: 8,
-  hr_score_raw: 72,
   hr_ai_rejected: true,
   hr_ai_suspicion: 0.91,
   hr_feedback:
@@ -56,7 +54,6 @@ export const MOCK_STATE_OFFER: Record<string, unknown> = {
   ...BASE_STATE,
   current_stage: "offer",
   hr_score: 85,
-  hr_score_raw: 85,
   hr_ai_rejected: false,
   hr_ai_suspicion: 0.05,
   hr_feedback:
@@ -69,7 +66,6 @@ export const MOCK_STATE_REJECTED: Record<string, unknown> = {
   ...BASE_STATE,
   current_stage: "rejected",
   hr_score: 48,
-  hr_score_raw: 48,
   hr_ai_rejected: false,
   hr_ai_suspicion: 0.12,
   hr_feedback:

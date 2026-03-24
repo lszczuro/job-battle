@@ -5,12 +5,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, RemoveMessage
 from langchain_core.tracers import LangChainTracer
 from pydantic import SecretStr
-from src.graph.state import GameState
-
-
-def _ls_callbacks() -> list:
-    """LangSmith-only callback — visible in LangSmith traces, invisible to CopilotKit UI."""
-    return [LangChainTracer()]
+from src.graph.state import GameState, Decision, Stage
 
 HR_EVAL_PROMPT = """\
 Jesteś HR managerem który właśnie przeprowadził rozmowę z kandydatem na {target_role} w {company_name}.
@@ -79,24 +74,9 @@ WAŻNE: Odpowiedź podzielona na numerowane sekcje z nagłówkami = niemal pewne
 Zwróć TYLKO JSON: {{"score": int}}\
 """
 
-TECH_PROMPT = """\
-Jesteś technical interviewerem który właśnie przeprowadził rozmowę techniczną \
-z kandydatem na {target_role} w {company_name}.
-
-Oceń ostatnią odpowiedź kandydata.
-Zwróć TYLKO JSON:
-{{
-  "score": int (1-10),
-  "feedback": str (1 zdanie co poszło dobrze/źle),
-  "decision": "pass" | "fail" | "continue"
-}}
-
-"continue" jeśli chcesz zadać jeszcze jedno pytanie techniczne.
-"pass" oznacza że kandydat jest zatrudniony.
-"fail" oznacza odrzucenie.
-Bądź wymagający.\
-"""
-
+def _ls_callbacks() -> list:
+    """LangSmith-only callback — visible in LangSmith traces, invisible to CopilotKit UI."""
+    return [LangChainTracer()]
 
 def _make_llm():
     return ChatOpenAI(
@@ -106,7 +86,6 @@ def _make_llm():
         api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
-
 def _make_detection_llm():
     """Stronger model for AI detection — nano+minimal misses complex signals."""
     return ChatOpenAI(
@@ -115,12 +94,11 @@ def _make_detection_llm():
         api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
-
 # ---------------------------------------------------------------------------
 # AI-use detection
 # ---------------------------------------------------------------------------
 
-async def _score_single_pair(question: str, answer: str, llm: ChatOpenAI | None = None) -> float:
+async def _score_single_pair(question: str, answer: str, llm=None) -> float:
     """Returns 0.0–1.0 AI probability for one question/answer pair."""
     if llm is None:
         llm = _make_detection_llm()
@@ -136,7 +114,7 @@ async def _score_single_pair(question: str, answer: str, llm: ChatOpenAI | None 
         return 0.3  # lean human on parse failure — don't penalize unfairly
 
 
-async def _score_latest_pair(messages: list, llm: ChatOpenAI | None = None) -> float | None:
+async def _score_latest_pair(messages: list) -> float | None:
     """Scores only the most recent question/answer pair. Returns None if no pair found."""
     ai_msgs = [m for m in messages if isinstance(m, AIMessage)]
     human_msgs = [m for m in messages if isinstance(m, HumanMessage)]
@@ -164,7 +142,7 @@ def _apply_ai_penalty(score: int, latest_suspicion: float | None, avg_suspicion:
     return effective
 
 
-def _determine_hr_decision(effective_score: int, turn_count: int) -> str:
+def _determine_hr_decision(effective_score: int, turn_count: int) -> Decision:
     if turn_count > 5 or effective_score <= 40:
         return "fail"
     if effective_score >= 70:
@@ -191,9 +169,10 @@ async def evaluate_hr(state: GameState) -> dict:
 
     prev_suspicion: float = state.get("hr_ai_suspicion") or 0.0
 
+    offer = state.get("selected_offer") or {}
     system = HR_EVAL_PROMPT.format(
-        target_role=state.get("target_role") or "kandydata",
-        company_name=state.get("company_name") or "nieznanej firmy",
+        target_role=offer.get("target_role") or "kandydata",
+        company_name=offer.get("company_name") or "nieznanej firmy",
         turn_count=turn_count,
     )
 
@@ -236,33 +215,8 @@ async def evaluate_hr(state: GameState) -> dict:
         updates["messages"] = _clear_messages(state)
     elif decision == "fail":
         updates["messages"] = _clear_messages(state)
-        updates["current_stage"] = "hr_failed"
+        failed_stage: Stage = "hr_failed"
+        updates["current_stage"] = failed_stage
         updates["game_over"] = True
-
-    return updates
-
-
-async def evaluate_tech(state: GameState) -> dict:
-    llm = _make_llm()
-    system = TECH_PROMPT.format(
-        target_role=state.get("target_role") or "kandydata",
-        company_name=state.get("company_name") or "nieznanej firmy",
-    )
-    response = await llm.ainvoke(
-        [SystemMessage(content=system)] + state["messages"],
-        config={"callbacks": _ls_callbacks()},
-    )
-    result = json.loads(str(response.content))
-
-    updates = {
-        "tech_score": result["score"],
-        "tech_feedback": result["feedback"],
-        "decision": result["decision"],
-    }
-
-    if result["decision"] == "pass":
-        updates["current_stage"] = "offer"
-    elif result["decision"] == "fail":
-        updates["current_stage"] = "rejected"
 
     return updates

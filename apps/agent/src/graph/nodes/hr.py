@@ -9,9 +9,9 @@ from pydantic import SecretStr
 
 async def hr_agent(state: GameState) -> dict:
     selected = state.get("selected_offer") or {}
-    role = state.get("target_role") or selected.get("target_role") or "nieznane stanowisko"
-    company = state.get("company_name") or selected.get("company_name") or "firma"
-    vibe = state.get("company_vibe") or selected.get("company_vibe") or ""
+    role = selected.get("target_role") or "nieznane stanowisko"
+    company = selected.get("company_name") or "firma"
+    vibe = selected.get("company_vibe") or ""
 
     turn_count = state.get("turn_count", 0)
 

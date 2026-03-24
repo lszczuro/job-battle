@@ -1,7 +1,7 @@
 import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
-from src.graph.state import GameState
+from src.graph.state import GameState, Stage
 from pydantic import SecretStr
 
 
@@ -14,8 +14,9 @@ async def final_report(state: GameState) -> dict:
         api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
     )
 
-    target_role = state.get("target_role") or "nieznane stanowisko"
-    company_name = state.get("company_name") or "nieznana firma"
+    offer = state.get("selected_offer") or {}
+    target_role = offer.get("target_role") or "nieznane stanowisko"
+    company_name = offer.get("company_name") or "nieznana firma"
     hr_score = state.get("hr_score")
     hr_feedback = state.get("hr_feedback") or ""
 
@@ -36,8 +37,9 @@ async def final_report(state: GameState) -> dict:
     messages = [SystemMessage(content=system), HumanMessage(content=summary_input)]
     response = await llm.ainvoke(messages)
 
+    stage: Stage = "offer"
     return {
         "game_over": True,
-        "current_stage": "offer",
+        "current_stage": stage,
         "final_summary": response.content,
     }

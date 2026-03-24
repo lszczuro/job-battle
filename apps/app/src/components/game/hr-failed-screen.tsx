@@ -9,7 +9,6 @@ export function HRFailedScreen({
   onRestart: () => void;
 }) {
   const hrScore = state?.hr_score as number | null;
-  const hrScoreRaw = state?.hr_score_raw as number | null;
   const hrFeedback = state?.hr_feedback as string | null;
   const hrAiSuspicion = state?.hr_ai_suspicion as number | null;
   const hrAiRejected = state?.hr_ai_rejected as boolean | null;
@@ -50,11 +49,6 @@ export function HRFailedScreen({
               System wykrył z {aiSuspicionPct}% pewnością, że odpowiedzi zostały wygenerowane
               przez AI. Kandydatura została odrzucona niezależnie od treści odpowiedzi.
             </p>
-            {hrScoreRaw !== null && (
-              <p className="text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>
-                Wynik przed karą: {hrScoreRaw}/100 → po karze: {hrScore}/100
-              </p>
-            )}
           </div>
         )}
 

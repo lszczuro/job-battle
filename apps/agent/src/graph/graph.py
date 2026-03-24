@@ -1,6 +1,6 @@
 from langgraph.graph import StateGraph, START, END
 
-from src.graph.state import GameState
+from src.graph.state import GameState, Stage
 from src.graph.nodes.evaluate import evaluate_hr
 from src.graph.nodes.hr import hr_agent
 from src.graph.nodes.final_report import final_report
@@ -12,7 +12,7 @@ def route_evaluate_hr(state: GameState) -> str:
 
 
 def route_start(state: GameState) -> str:
-    stage = state.get("current_stage", "offer_selection")
+    stage: Stage = state.get("current_stage", "offer_selection")
     if stage == "offer_selection":
         return "generate_offers"
     if stage == "hr":
