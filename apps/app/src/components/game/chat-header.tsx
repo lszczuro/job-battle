@@ -42,8 +42,8 @@ function ChatHeader({
     <div
       className="px-4 py-3 flex items-center gap-3 shrink-0"
       style={{
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        background: "rgba(255,255,255,0.02)",
+        borderBottom: "1px solid var(--border)",
+        background: "var(--card)",
       }}
     >
       {/* Avatar */}
@@ -51,7 +51,7 @@ function ChatHeader({
         className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
         style={{
           background: avatarGradient,
-          color: "rgba(255,255,255,0.9)",
+          color: "var(--primary-foreground)",
           letterSpacing: "-0.02em",
         }}
       >
@@ -60,12 +60,12 @@ function ChatHeader({
 
       {/* Name + role */}
       <div className="flex-1 min-w-0">
-        <div className="text-white text-sm font-semibold leading-none truncate">
+        <div className="text-[var(--foreground)] text-sm font-semibold leading-none truncate">
           {name}
         </div>
         <div
           className="text-xs mt-0.5 truncate font-mono"
-          style={{ color: "rgba(255,255,255,0.35)" }}
+          style={{ color: "var(--muted-foreground)" }}
         >
           {title} · {company} · {role}
         </div>
@@ -75,7 +75,7 @@ function ChatHeader({
       <div className="flex items-center gap-2 shrink-0">
         <span
           className="font-mono text-xs tabular-nums"
-          style={{ color: "rgba(255,255,255,0.35)" }}
+          style={{ color: "var(--muted-foreground)" }}
         >
           {mm}:{ss}
         </span>
@@ -89,15 +89,15 @@ function ChatHeader({
                   border: `1px solid rgba(${accentRgb},0.3)`,
                 }
               : {
-                  background: "rgba(255,255,255,0.04)",
-                  color: "rgba(255,255,255,0.25)",
-                  border: "1px solid rgba(255,255,255,0.07)",
+                  background: "var(--muted)",
+                  color: "var(--muted-foreground)",
+                  border: "1px solid var(--border)",
                 }
           }
         >
           <span
             className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
-            style={{ background: isRunning ? accentColor : "rgba(255,255,255,0.2)" }}
+            style={{ background: isRunning ? accentColor : "var(--muted-foreground)" }}
           />
           {isRunning ? "pisze..." : "czeka"}
         </div>

@@ -42,22 +42,6 @@ export function GameResultScreen({
   type: "offer" | "rejected";
   onRestart: () => void;
 }) {
-
-  const MOCK_STATE = {
-    hr_score: 85,
-    final_summary: "Świetna rozmowa! Wykazałeś się doskonałymi umiejętnościami komunikacyjnymi.",
-    selected_offer: {
-      company_name: "Acme Corp",
-      target_role: "Senior Frontend Developer",
-      company_vibe: "startup",
-      tech_stack: ["React", "TypeScript"],
-    },
-    target_role: "Senior Frontend Developer",
-    company_name: "Acme Corp",
-  };
-
-  state = MOCK_STATE;
-
   const hrScore = state?.hr_score as number | null;
   const finalSummary = state?.final_summary as string | null;
   const offer = state?.selected_offer as Record<string, unknown> | null;
@@ -65,16 +49,16 @@ export function GameResultScreen({
   const isOffer = type === "offer";
 
   const hrColors = (() => {
-    if (hrScore === null) return { text: "rgba(255,255,255,0.4)", bg: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.1)" };
-    if (hrScore >= 70) return { text: "#4ade80", bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.25)" };
-    if (hrScore >= 50) return { text: "#facc15", bg: "rgba(250,204,21,0.08)", border: "rgba(250,204,21,0.25)" };
-    return { text: "#f87171", bg: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.25)" };
+    if (hrScore === null) return { text: "var(--muted-foreground)", bg: "var(--muted)", border: "var(--border)" };
+    if (hrScore >= 70) return { text: "var(--status-success)", bg: "var(--status-success-bg)", border: "var(--status-success-border)" };
+    if (hrScore >= 50) return { text: "var(--status-warning)", bg: "var(--status-warning-bg)", border: "var(--status-warning-border)" };
+    return { text: "var(--status-error)", bg: "var(--status-error-bg)", border: "var(--status-error-border)" };
   })();
 
   return (
     <div
       className="h-full overflow-y-auto flex flex-col items-center justify-center px-6 py-12"
-      style={{ background: "#0e0e14" }}
+      style={{ background: "var(--background)" }}
     >
       <div className="w-full max-w-xl flex flex-col gap-5">
 
@@ -109,20 +93,8 @@ export function GameResultScreen({
 
         <button
           onClick={onRestart}
-          className="w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-          style={
-            isOffer
-              ? {
-                  background: "rgba(255,255,255,0.07)",
-                  color: "rgba(255,255,255,0.65)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }
-              : {
-                  background: "rgba(255,255,255,0.07)",
-                  color: "rgba(255,255,255,0.65)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }
-          }
+          className="w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98] bg-[var(--secondary)] text-[var(--secondary-foreground)]"
+          style={{ border: "1px solid var(--border)" }}
         >
           Zagraj ponownie →
         </button>

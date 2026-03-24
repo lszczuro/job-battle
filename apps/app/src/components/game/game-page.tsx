@@ -56,11 +56,11 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
     <div className="h-full relative">
       <div
         className="h-full flex flex-row overflow-hidden"
-        style={{ background: isHr ? "#0e0e14" : undefined }}
+        style={{ background: "var(--background)" }}
       >
         <div
           className="flex-1 min-w-0 flex flex-col h-full"
-          style={{ background: isHr ? "#111118" : undefined }}
+          style={{ background: "var(--card)" }}
         >
           {isHr && (
             <HRChatHeader offer={offer} isRunning={agent.isRunning} />
@@ -71,25 +71,25 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
             {agent.messages.length === 0 && (
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10"
-                style={{ background: isHr ? "#111118" : "var(--background, #fff)" }}
+                style={{ background: "var(--background)" }}
               >
                 <div className="flex items-center gap-2">
                   <span
-                    className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                    className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce"
                     style={{ animationDelay: "0ms" }}
                   />
                   <span
-                    className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                    className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce"
                     style={{ animationDelay: "150ms" }}
                   />
                   <span
-                    className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                    className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce"
                     style={{ animationDelay: "300ms" }}
                   />
                 </div>
                 <p
                   className="text-sm font-mono"
-                  style={{ color: isHr ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}
+                  style={{ color: "var(--muted-foreground)" }}
                 >
                   Nawiązywanie połączenia z rekruterem...
                 </p>

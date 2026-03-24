@@ -75,3 +75,32 @@ body {
 body, html {
   height: 100%;
 }
+
+/* CopilotKit theme mapping */
+:root {
+  --copilot-kit-background-color: var(--background);
+  --copilot-kit-secondary-color: var(--card);
+  --copilot-kit-primary-color: var(--primary);
+  --copilot-kit-contrast-color: var(--primary-foreground);
+  --copilot-kit-secondary-contrast-color: var(--foreground);
+  --copilot-kit-separator-color: var(--border);
+  --copilot-kit-muted-color: var(--muted);
+  --copilot-kit-input-background-color: var(--input);
+
+  /* Status colors (game-specific) */
+  --status-success: #4ade80;
+  --status-success-bg: rgba(74,222,128,0.08);
+  --status-success-border: rgba(74,222,128,0.25);
+  --status-warning: #facc15;
+  --status-warning-bg: rgba(250,204,21,0.08);
+  --status-warning-border: rgba(250,204,21,0.25);
+  --status-error: #f87171;
+  --status-error-bg: rgba(248,113,113,0.08);
+  --status-error-border: rgba(248,113,113,0.25);
+  --status-info: #818cf8;
+  --status-info-bg: rgba(59,79,216,0.08);
+  --status-info-border: rgba(59,79,216,0.2);
+  --status-ai: #fbbf24;
+  --status-ai-bg: rgba(251,191,36,0.07);
+  --status-ai-border: rgba(251,191,36,0.25);
+}

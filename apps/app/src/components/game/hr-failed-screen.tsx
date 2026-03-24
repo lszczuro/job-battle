@@ -22,7 +22,7 @@ export function HRFailedScreen({
   return (
     <div
       className="h-full overflow-y-auto flex flex-col items-center justify-center px-6 py-12"
-      style={{ background: "#0e0e14" }}
+      style={{ background: "var(--background)" }}
     >
       <div className="w-full max-w-xl flex flex-col gap-5">
 
@@ -39,20 +39,20 @@ export function HRFailedScreen({
         {aiDetected && (
           <div
             className="rounded-xl px-5 py-4 flex flex-col gap-2"
-            style={{ background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.25)" }}
+            style={{ background: "var(--status-ai-bg)", border: "1px solid var(--status-ai-border)" }}
           >
             <div className="flex items-center gap-2">
               <span className="text-base">⚠️</span>
-              <p className="text-sm font-semibold" style={{ color: "#fbbf24" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--status-ai)" }}>
                 Podejrzenie oszustwa — użycie AI
               </p>
             </div>
-            <p className="text-xs leading-relaxed" style={{ color: "rgba(251,191,36,0.7)" }}>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
               System wykrył z {aiSuspicionPct}% pewnością, że odpowiedzi zostały wygenerowane
               przez AI. Kandydatura została odrzucona niezależnie od treści odpowiedzi.
             </p>
             {hrScoreRaw !== null && (
-              <p className="text-xs font-mono" style={{ color: "rgba(251,191,36,0.45)" }}>
+              <p className="text-xs font-mono" style={{ color: "var(--muted-foreground)" }}>
                 Wynik przed karą: {hrScoreRaw}/100 → po karze: {hrScore}/100
               </p>
             )}
@@ -62,16 +62,16 @@ export function HRFailedScreen({
         {hrScore !== null && (
           <div
             className="flex items-center justify-between rounded-xl px-5 py-4"
-            style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)" }}
+            style={{ background: "var(--status-error-bg)", border: "1px solid var(--status-error-border)" }}
           >
-            <span className="text-xs font-mono uppercase tracking-widest" style={{ color: "#f87171", opacity: 0.6 }}>
+            <span className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--status-error)", opacity: 0.6 }}>
               Wynik HR
             </span>
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold tabular-nums" style={{ color: "#f87171" }}>
+              <span className="text-3xl font-bold tabular-nums" style={{ color: "var(--status-error)" }}>
                 {hrScore}
               </span>
-              <span className="text-sm" style={{ color: "#f87171", opacity: 0.5 }}>/ 100</span>
+              <span className="text-sm" style={{ color: "var(--status-error)", opacity: 0.5 }}>/ 100</span>
             </div>
           </div>
         )}
@@ -81,12 +81,8 @@ export function HRFailedScreen({
 
         <button
           onClick={onRestart}
-          className="w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-          style={{
-            background: "rgba(255,255,255,0.07)",
-            color: "rgba(255,255,255,0.65)",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}
+          className="w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98] bg-[var(--secondary)] text-[var(--secondary-foreground)]"
+          style={{ border: "1px solid var(--border)" }}
         >
           Spróbuj z inną ofertą →
         </button>

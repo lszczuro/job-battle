@@ -2,10 +2,10 @@ export type StepState = "done" | "next" | "pending" | "failed";
 
 function ProgressStep({ label, state }: { label: string; state: StepState }) {
   const styles = {
-    done: { bg: "rgba(74,222,128,0.15)", border: "rgba(74,222,128,0.4)", text: "#4ade80" },
-    next: { bg: "rgba(59,79,216,0.2)", border: "rgba(59,79,216,0.5)", text: "#818cf8" },
-    pending: { bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.1)", text: "rgba(255,255,255,0.3)" },
-    failed: { bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.35)", text: "#f87171" },
+    done: { bg: "var(--status-success-bg)", border: "var(--status-success-border)", text: "var(--status-success)" },
+    next: { bg: "var(--status-info-bg)", border: "var(--status-info-border)", text: "var(--status-info)" },
+    pending: { bg: "var(--muted)", border: "var(--border)", text: "var(--muted-foreground)" },
+    failed: { bg: "var(--status-error-bg)", border: "var(--status-error-border)", text: "var(--status-error)" },
   }[state];
   return (
     <div className="flex items-center gap-1.5">
@@ -24,10 +24,10 @@ export function ProgressTracker({ hr, wynik }: { hr: StepState; wynik: StepState
   return (
     <div
       className="flex items-center gap-2 rounded-xl px-5 py-3"
-      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+      style={{ background: "var(--card)", border: "1px solid var(--border)" }}
     >
       <ProgressStep label="HR" state={hr} />
-      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.1)" }} />
+      <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
       <ProgressStep label="Wynik" state={wynik} />
     </div>
   );

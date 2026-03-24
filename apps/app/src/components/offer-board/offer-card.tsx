@@ -76,8 +76,8 @@ export function OfferCardItem({ card, index, onSelect, isLoading }: OfferCardPro
       </div>
 
       {/* Hover overlay */}
-      <div className="absolute inset-0 rounded-sm bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-        <span className="bg-white/90 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow">
+      <div className="absolute inset-0 rounded-sm bg-[var(--primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <span className="bg-[var(--card)] text-[var(--foreground)] text-xs font-semibold px-3 py-1.5 rounded-full shadow">
           Wybieram →
         </span>
       </div>

@@ -91,12 +91,12 @@ export function OfferBoard({ onSelectOffer }: OfferBoardProps) {
           onKeyDown={(e) => e.key === "Enter" && handleRegenerate()}
           placeholder="Np. senior devops, fullstack JS, machine learning..."
           disabled={isPending || isSelecting}
-          className="flex-1 px-4 py-2.5 rounded-lg border border-amber-300 bg-white/80 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-60"
+          className="flex-1 px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] disabled:opacity-60"
         />
         <button
           onClick={handleRegenerate}
           disabled={!input.trim() || isPending || isSelecting}
-          className="px-4 py-2.5 rounded-lg bg-amber-400 hover:bg-amber-500 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+          className="px-4 py-2.5 rounded-lg bg-[var(--primary)] hover:opacity-90 text-[var(--primary-foreground)] text-sm font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
         >
           {isPending ? (
             <span className="animate-spin">↻</span>
@@ -127,7 +127,7 @@ export function OfferBoard({ onSelectOffer }: OfferBoardProps) {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="text-4xl animate-bounce mb-3">🔍</div>
-              <p className="text-amber-100 font-medium">Szukam dopasowanych ofert...</p>
+              <p className="text-[var(--primary-foreground)] font-medium">Szukam dopasowanych ofert...</p>
             </div>
           </div>
         ) : (
@@ -145,7 +145,7 @@ export function OfferBoard({ onSelectOffer }: OfferBoardProps) {
         )}
       </div>
 
-      <p className="text-gray-400 text-xs mt-6">
+      <p className="text-[var(--muted-foreground)] text-xs mt-6">
         Kliknij karteczkę, żeby rozpocząć grę jako kandydat na to stanowisko
       </p>
     </div>
