@@ -67,7 +67,7 @@ export function OfferCardItem({ card, onSelect, isLoading }: OfferCardProps) {
 
           {card.company_quote && (
             <p className="text-xs italic mb-2 leading-snug line-clamp-2 sm:line-clamp-none" style={{ color: "var(--muted-foreground)" }}>
-              "{card.company_quote}"
+              &ldquo;{card.company_quote}&rdquo;
             </p>
           )}
 

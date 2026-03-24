@@ -76,7 +76,7 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
       hrStartedRef.current = true;
       agent.runAgent();
     }
-  }, [gameStarted]);
+  }, [gameStarted, agent]);
 
   const isHr = stage === "hr";
   const isHrFailed = stage === "hr_failed";
