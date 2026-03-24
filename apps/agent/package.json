@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "uv run langgraph dev --port 8123 --no-browser",
-    "postinstall": "uv sync"
+    "test": "uv run --group dev pytest tests/",
+    "postinstall": "uv sync --group dev"
   },
   "devDependencies": {
     "@langchain/langgraph-cli": "^1.1.12"
