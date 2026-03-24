@@ -1,0 +1,112 @@
+"use client";
+
+import { OfferCardItem } from "@/components/offer-board/offer-card";
+import type { OfferCard } from "@/components/offer-board/offer-card";
+
+const PRESET_OFFERS: OfferCard[] = [
+  {
+    id: "preset-1",
+    company_name: "NovaTech Sp. z o.o.",
+    target_role: "Senior Python Developer",
+    company_vibe: "scale-up, fintech, Warszawa, 200 os.",
+    emoji: "🐍",
+    tech_stack: ["Python", "FastAPI", "PostgreSQL", "Docker", "K8s"],
+  },
+  {
+    id: "preset-2",
+    company_name: "CloudBase S.A.",
+    target_role: "Frontend Engineer (React)",
+    company_vibe: "startup, SaaS B2B, Kraków / remote, 60 os.",
+    emoji: "⚛️",
+    tech_stack: ["React", "TypeScript", "Next.js", "Tailwind", "GraphQL"],
+  },
+  {
+    id: "preset-3",
+    company_name: "DataFlow Systems",
+    target_role: "Machine Learning Engineer",
+    company_vibe: "korporacja, AI/ML, Wrocław, 500 os.",
+    emoji: "🤖",
+    tech_stack: ["Python", "PyTorch", "MLflow", "AWS", "Spark"],
+  },
+];
+
+export default function OfferSelectionDevPage() {
+  return (
+    <div className="h-[calc(100vh-40px)] flex flex-col">
+      {/* Header bar (mirrors OfferBoard header) */}
+      <div
+        className="px-4 py-3 shrink-0 flex items-center gap-2"
+        style={{ borderBottom: "1px solid var(--border)", background: "var(--card)" }}
+      >
+        <span className="text-lg">💼</span>
+        <div>
+          <div className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+            Job Battle
+          </div>
+          <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+            Wybierz ofertę lub opisz czego szukasz
+          </div>
+        </div>
+      </div>
+
+      {/* Welcome screen content */}
+      <div className="flex-1 overflow-y-auto flex flex-col items-center px-6 py-8">
+        <div className="text-center mb-8 max-w-sm">
+          <div className="text-4xl mb-3">💼</div>
+          <h2 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+            Witaj w Job Battle!
+          </h2>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+            Wciel się w kandydata i przejdź rozmowę rekrutacyjną z AI.
+            Wybierz gotową ofertę poniżej lub opisz czego szukasz — znajdziemy
+            dopasowane stanowisko.
+          </p>
+        </div>
+
+        <p
+          className="text-xs font-semibold uppercase tracking-widest mb-4"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          Gotowe oferty
+        </p>
+
+        <div className="flex flex-wrap gap-6 justify-center">
+          {PRESET_OFFERS.map((offer, i) => (
+            <OfferCardItem
+              key={offer.id}
+              card={offer}
+              index={i}
+              onSelect={() => {}}
+              isLoading={false}
+            />
+          ))}
+        </div>
+
+        <p className="text-xs mt-8" style={{ color: "var(--muted-foreground)" }}>
+          albo wpisz swoje preferencje poniżej ↓
+        </p>
+      </div>
+
+      {/* Mock input bar */}
+      <div
+        className="shrink-0 px-4 pb-4 pt-2"
+        style={{ borderTop: "1px solid var(--border)", background: "var(--card)" }}
+      >
+        <div
+          className="flex items-center gap-2 rounded-xl px-4 py-3"
+          style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
+        >
+          <span className="flex-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
+            np. szukam pracy jako frontend developer w startupie...
+          </span>
+          <button
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+            style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+          >
+            Wyślij
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
