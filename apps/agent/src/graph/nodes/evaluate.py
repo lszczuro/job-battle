@@ -3,8 +3,14 @@ import os
 import json
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, RemoveMessage
+from langchain_core.tracers import LangChainTracer
 from pydantic import SecretStr
 from src.graph.state import GameState
+
+
+def _ls_callbacks() -> list:
+    """LangSmith-only callback — visible in LangSmith traces, invisible to CopilotKit UI."""
+    return [LangChainTracer()]
 
 HR_EVAL_PROMPT = """\
 Jesteś HR managerem który właśnie przeprowadził rozmowę z kandydatem na {target_role} w {company_name}.
@@ -122,7 +128,7 @@ async def _score_single_pair(question: str, answer: str, llm: ChatOpenAI | None 
     result = await llm.ainvoke([
         SystemMessage(content=AI_DETECTION_PROMPT.format(question=question)),
         HumanMessage(content=answer),
-    ], config={"callbacks": []})
+    ], config={"callbacks": _ls_callbacks()})
     try:
         data = json.loads(str(result.content))
         score = int(data.get("score", 50))
@@ -195,7 +201,7 @@ async def evaluate_hr(state: GameState) -> dict:
     # Oba wywołania LLM są niezależne — uruchamiamy równolegle
     latest_suspicion, hr_response = await asyncio.gather(
         _score_latest_pair(messages),
-        llm.ainvoke([SystemMessage(content=system)] + messages, config={"callbacks": []}),
+        llm.ainvoke([SystemMessage(content=system)] + messages, config={"callbacks": _ls_callbacks()}),
     )
 
     # Inkrementalne uśrednianie — nie re-scorujemy całej historii
@@ -246,7 +252,7 @@ async def evaluate_tech(state: GameState) -> dict:
     )
     response = await llm.ainvoke(
         [SystemMessage(content=system)] + state["messages"],
-        config={"callbacks": []},
+        config={"callbacks": _ls_callbacks()},
     )
     result = json.loads(str(response.content))
 
