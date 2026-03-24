@@ -20,7 +20,7 @@ export const POST = async (req: NextRequest) => {
     endpoint: "/api/copilotkit",
     serviceAdapter: new ExperimentalEmptyAdapter(),
     runtime: new CopilotRuntime({
-      agents: { default: defaultAgent }
+      agents: { default: defaultAgent },
     }),
   });
 

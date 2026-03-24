@@ -13,4 +13,4 @@ RUN uv pip install --system .
 
 EXPOSE 8123
 
-CMD ["langgraph", "dev", "--host", "0.0.0.0", "--port", "8123", "--no-browser", "--no-reload"]
+CMD ["langgraph", "dev", "--host", "0.0.0.0", "--port", "8123", "--no-browser", "--no-reload", "--allow-origins", "*"]
