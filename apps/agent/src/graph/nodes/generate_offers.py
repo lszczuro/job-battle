@@ -31,8 +31,6 @@ async def generate_offers(state: GameState) -> dict:
                 preference = str(msg.content)
                 break
 
-    print(f"[generate_offers] called, preference={preference!r}", flush=True)
-
     if not preference:
         return {
             "current_stage": stage,

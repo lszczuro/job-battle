@@ -5,7 +5,7 @@ from langgraph.graph.message import add_messages
 
 Decision = Literal["pass", "fail", "continue"]
 
-Stage = Literal["offer_selection", "hr", "hr_failed", "offer"]
+Stage = Literal["offer_selection", "hr", "rejected", "offer"]
 
 
 class OfferCard(TypedDict):
@@ -18,27 +18,27 @@ class OfferCard(TypedDict):
 
 
 class GameState(TypedDict):
-    # Wymagane przez CopilotKit — aktywna rozmowa bieżącego etapu
+    # Required by CopilotKit — active conversation for the current stage
     messages: Annotated[list[BaseMessage], add_messages]
 
-    # Ekran wyboru oferty
+    # Offer selection screen
     user_preference: str | None
     selected_offer: OfferCard | None
 
-    # Ukryte oceny (niewidoczne dla gracza)
-    hr_score_raw: int | None       # raw score (przed AI penalty)
-    hr_score: int | None           # effective score (po AI penalty)
-    hr_ai_suspicion: float | None  # 0.0–1.0 prawdopodobieństwo użycia AI (średnia)
-    hr_ai_rejected: bool | None    # True gdy AI detection był bezpośrednią przyczyną odrzucenia
-    hr_feedback: str | None        # feedback od HR (tekstowy)
+    # Hidden scores (not visible to the player)
+    hr_score_raw: int | None       # raw score (before AI penalty)
+    hr_score: int | None           # effective score (after AI penalty)
+    hr_ai_suspicion: float | None  # 0.0–1.0 probability of AI usage (average)
+    hr_ai_rejected: bool | None    # True when AI detection was the direct cause of rejection
+    hr_feedback: str | None        # feedback from HR (text)
 
-    # Wewnętrzna decyzja węzłów evaluate_*
+    # Internal decision of evaluate_* nodes
     decision: Decision | None
 
-    # Podsumowanie końcowe
+    # Final summary
     final_summary: str | None
 
-    # Kontrola przepływu
+    # Flow control
     current_stage: Stage
     turn_count: int
     game_over: bool

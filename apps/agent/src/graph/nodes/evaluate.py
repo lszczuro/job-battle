@@ -176,13 +176,13 @@ async def evaluate_hr(state: GameState) -> dict:
         turn_count=turn_count,
     )
 
-    # Oba wywołania LLM są niezależne — uruchamiamy równolegle
+    # Both LLM calls are independent — run them in parallel
     latest_suspicion, hr_response = await asyncio.gather(
         _score_latest_pair(messages),
         llm.ainvoke([SystemMessage(content=system)] + messages, config={"callbacks": _ls_callbacks()}),
     )
 
-    # Inkrementalne uśrednianie — nie re-scorujemy całej historii
+    # Average suspicion: weighted average of previous turns + latest turn (if available)
     if latest_suspicion is None:
         ai_suspicion = prev_suspicion
     elif turn_count <= 1:
@@ -193,13 +193,12 @@ async def evaluate_hr(state: GameState) -> dict:
     hr_eval = json.loads(str(hr_response.content))
     raw_score: int = hr_eval["score"]
 
-    # Enforce AI detection penalty in code — LLM (nano/minimal) doesn't reliably follow prompt rules
+    # Enforce AI detection penalty in code — LLM doesn't reliably follow prompt rules
     effective_score = _apply_ai_penalty(raw_score, latest_suspicion, ai_suspicion)
 
     # AI rejection flag: set when latest detection directly caused score cap (≥0.85)
     ai_rejection_triggered = latest_suspicion is not None and latest_suspicion >= 0.85
 
-    print(f"DEBUG evaluate_hr: raw_score={raw_score}, effective_score={effective_score}, latest_suspicion={latest_suspicion}, avg_suspicion={ai_suspicion}, turns={turn_count}")
     decision = _determine_hr_decision(effective_score, turn_count)
 
     updates = {
@@ -215,7 +214,7 @@ async def evaluate_hr(state: GameState) -> dict:
         updates["messages"] = _clear_messages(state)
     elif decision == "fail":
         updates["messages"] = _clear_messages(state)
-        failed_stage: Stage = "hr_failed"
+        failed_stage: Stage = "rejected"
         updates["current_stage"] = failed_stage
         updates["game_over"] = True
 

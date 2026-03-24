@@ -76,7 +76,6 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
   }, [gameStarted, agent]);
 
   const isHr = stage === "hr";
-  const isHrFailed = stage === "hr_failed";
   const isOffer = stage === "offer";
   const isRejected = stage === "rejected";
 
@@ -126,7 +125,7 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
         </div>
       </div>
 
-      {isHrFailed && (
+      {isRejected && Boolean(state?.hr_ai_rejected) && (
         <div className="absolute inset-0 z-20">
           <HRFailedScreen state={state} onRestart={onRestart} />
         </div>
@@ -136,7 +135,7 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
           <GameResultScreen state={state} type="offer" onRestart={onRestart} />
         </div>
       )}
-      {isRejected && (
+      {isRejected && !Boolean(state?.hr_ai_rejected) && (
         <div className="absolute inset-0 z-20">
           <GameResultScreen state={state} type="rejected" onRestart={onRestart} />
         </div>

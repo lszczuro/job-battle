@@ -41,7 +41,7 @@ export const MOCK_STATE_HR: Record<string, unknown> = {
 
 export const MOCK_STATE_HR_FAILED_AI: Record<string, unknown> = {
   ...BASE_STATE,
-  current_stage: "hr_failed",
+  current_stage: "rejected",
   hr_score: 8,
   hr_ai_rejected: true,
   hr_ai_suspicion: 0.91,

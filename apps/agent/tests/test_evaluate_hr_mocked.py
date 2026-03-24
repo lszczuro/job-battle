@@ -247,7 +247,7 @@ class TestStateTransitions:
         state = _state(turn_count=2, messages=_convo(1))
         with _patch_llms(hr_score=30, detection_score=10):
             result = await evaluate_hr(state)
-        assert result["current_stage"] == "hr_failed"
+        assert result["current_stage"] == "rejected"
 
     async def test_fail_sets_game_over(self):
         state = _state(turn_count=2, messages=_convo(1))
