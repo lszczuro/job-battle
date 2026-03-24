@@ -1,118 +1,99 @@
-# CopilotKit <> LangGraph Starter
+# Job Battle
 
-This is a starter template for building AI agents using [LangGraph](https://www.langchain.com/langgraph) and [CopilotKit](https://copilotkit.ai). It provides a modern Next.js application with an integrated LangGraph agent to be built on top of.
+Symulator rozmowy rekrutacyjnej oparty na AI. Opisujesz wymarzone stanowisko, AI generuje oferty pracy, a następnie przeprowadza Cię przez rozmowę HR — z absurdalnymi pytaniami i wykrywaczem odpowiedzi AI.
 
-https://github.com/user-attachments/assets/47761912-d46a-4fb3-b9bd-cb41ddd02e34
+## Jak to działa
 
-## Prerequisites
+1. **Opisz stanowisko** — wpisz czego szukasz, AI generuje kilka spersonalizowanych ofert
+2. **Wybierz ofertę** — kliknij interesującą Cię pozycję
+3. **Rozmowa HR z "Kasią"** — stereotypowa rekruterka zadaje absurdalne pytania metaforyczne ("Gdybyś był kolorem, jaki by to był kolor?")
+4. **Ocena** — AI ocenia Twoje odpowiedzi (zaangażowanie, autentyczność) i wykrywa użycie AI do generowania odpowiedzi
+5. **Wynik** — oferta pracy albo odrzucenie (z feedbackiem i wynikiem 0–100)
+
+### Wykrywanie AI
+
+Agent ocenia każdą odpowiedź pod kątem oznak użycia AI (markdown, buzzwordy, nadmierna struktura). Jeśli prawdopodobieństwo przekroczy 85% — kandydatura zostaje odrzucona niezależnie od treści.
+
+## Stack
+
+- **Frontend**: Next.js, React, TailwindCSS
+- **Agent**: LangGraph (Python), OpenAI
+- **Integracja**: CopilotKit v2 (bidirectional agent state)
+- **Monorepo**: Turborepo + pnpm
+
+## Uruchomienie
+
+### Wymagania
 
 - Node.js 18+
 - Python 3.8+
-- Any of the following package managers:
-  - [pnpm](https://pnpm.io/installation) (recommended)
-  - npm
-  - [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
-  - [bun](https://bun.sh/)
-- OpenAI API Key (for the LangGraph agent)
+- pnpm
+- Klucz OpenAI API
 
-> **Note:** This repository ignores lock files (package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb) to avoid conflicts between different package managers. Each developer should generate their own lock file using their preferred package manager. After that, make sure to delete it from the .gitignore.
-
-## Getting Started
-
-1. Install dependencies using your preferred package manager:
+### Instalacja
 
 ```bash
-# Using pnpm (recommended)
+# Zależności JS
 pnpm install
 
-# Using npm
-npm install
-
-# Using yarn
-yarn install
-
-# Using bun
-bun install
+# Zależności Python (agent)
+pnpm install:agent
 ```
 
-2. Set up your environment variables:
+### Konfiguracja
 
 ```bash
-cp .env.example .env
+# Skopiuj plik z przykładem i uzupełnij klucz API
+cp apps/agent/.env.example apps/agent/.env
 ```
 
-Then edit the `.env` file and add your OpenAI API key:
-
-```bash
-OPENAI_API_KEY=your-openai-api-key-here
+```env
+OPENAI_API_KEY=your-key-here
 ```
 
-3. Start the development server:
+### Uruchomienie (dev)
 
 ```bash
-# Using pnpm
 pnpm dev
-
-# Using npm
-npm run dev
-
-# Using yarn
-yarn dev
-
-# Using bun
-bun run dev
 ```
 
-This will start both the UI and agent servers concurrently.
+Uruchamia jednocześnie:
+- Frontend: `http://localhost:3000`
+- Agent (LangGraph): `http://localhost:8123`
 
-## Available Scripts
+### Skrypty
 
-The following scripts can also be run using your preferred package manager:
+| Komenda | Opis |
+|---------|------|
+| `pnpm dev` | Frontend + agent |
+| `pnpm dev:app` | Tylko Next.js |
+| `pnpm dev:agent` | Tylko agent |
+| `pnpm build` | Build produkcyjny |
+| `pnpm lint` | Linting |
 
-- `dev` - Starts both UI and agent servers in development mode
-- `dev:debug` - Starts development servers with debug logging enabled
-- `dev:ui` - Starts only the Next.js UI server
-- `dev:agent` - Starts only the LangGraph agent server
-- `build` - Builds the Next.js application for production
-- `start` - Starts the production server
-- `lint` - Runs ESLint for code linting
-- `install:agent` - Installs Python dependencies for the agent
+## Struktura projektu
 
-## Documentation
-
-The main UI component is in `src/app/page.tsx`. You can:
-
-- Modify the theme colors and styling
-- Add new frontend actions
-- Customize the CopilotKit sidebar appearance
-
-## 📚 Documentation
-
-- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/) - Learn more about LangGraph and its features
-- [CopilotKit Documentation](https://docs.copilotkit.ai) - Explore CopilotKit's capabilities
-
-## Contributing
-
-Feel free to submit issues and enhancement requests! This starter is designed to be easily extensible.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Troubleshooting
-
-### Agent Connection Issues
-
-If you see "I'm having trouble connecting to my tools", make sure:
-
-1. The LangGraph agent is running on port 8000
-2. Your OpenAI API key is set correctly
-3. Both servers started successfully
-
-### Python Dependencies
-
-If you encounter Python import errors:
-
-```bash
-npm install:agent
 ```
+apps/
+├── app/          # Next.js frontend
+│   └── src/
+│       ├── app/          # Next.js routes + API
+│       └── components/
+│           ├── game/     # Ekrany gry (chat, wynik, nagłówek)
+│           └── offer-board/  # Wybór oferty
+└── agent/        # LangGraph agent (Python)
+    └── src/graph/
+        ├── nodes/
+        │   ├── generate_offers.py  # Generowanie ofert na podstawie preferencji
+        │   ├── hr.py               # Rekruterka "Kasia"
+        │   ├── evaluate.py         # Ocena odpowiedzi + wykrywanie AI
+        │   └── final_report.py     # Podsumowanie końcowe
+        ├── graph.py    # Definicja grafu LangGraph
+        └── state.py    # Schema stanu gry
+```
+
+## Rozwiązywanie problemów
+
+**Agent nie odpowiada** — sprawdź czy `OPENAI_API_KEY` jest ustawiony i czy agent działa na porcie 8123.
+
+**Błędy importu Python** — uruchom `pnpm install:agent` ponownie.
