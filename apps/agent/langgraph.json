@@ -8,5 +8,5 @@
   "graphs": {
     "job_battle": "./main.py:graph"
   },
-  "env": "../../.env"
+  "env": ".env"
 }

@@ -1,0 +1,18 @@
+services:
+  agent:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/job-battle-agent:latest
+    restart: unless-stopped
+    env_file: .env
+    expose:
+      - "8123"
+
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/job-battle-app:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - LANGGRAPH_DEPLOYMENT_URL=http://agent:8123
+    expose:
+      - "3000"
+    depends_on:
+      - agent

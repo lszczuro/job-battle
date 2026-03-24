@@ -1,0 +1,16 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install uv
+RUN pip install uv
+
+# Copy agent source (context: apps/agent)
+COPY . ./
+
+# Install dependencies
+RUN uv pip install --system .
+
+EXPOSE 8123
+
+CMD ["langgraph", "dev", "--host", "0.0.0.0", "--port", "8123", "--no-browser", "--no-reload"]
