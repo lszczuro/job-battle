@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { OfferCardItem, OfferCard } from "./offer-card";
 import { z } from "zod";
 
@@ -48,9 +49,10 @@ export const PRESET_OFFERS: OfferCard[] = [
 interface WelcomeScreenProps {
   onSelectOffer: (offer: OfferCard) => void;
   isSelecting: boolean;
+  input?: React.ReactNode;
 }
 
-export function WelcomeScreen({ onSelectOffer, isSelecting }: WelcomeScreenProps) {
+export function WelcomeScreen({ onSelectOffer, isSelecting, input }: WelcomeScreenProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto flex flex-col items-center px-4 py-5">
@@ -99,6 +101,7 @@ export function WelcomeScreen({ onSelectOffer, isSelecting }: WelcomeScreenProps
         </p>
       </div>
 
+      {input}
     </div>
   );
 }

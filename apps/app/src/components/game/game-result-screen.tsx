@@ -2,18 +2,6 @@ import { ProgressTracker } from "./progress-tracker";
 import { OfferCard, FeedbackBlock, ResultHeader } from "./result-ui";
 
 function LinkedInShareButton({ state }: { state: Record<string, unknown> | null }) {
-  const role = state?.target_role as string | null;
-  const company = state?.company_name as string | null;
-  const hrScore = state?.hr_score as number | null;
-
-  const shareText = [
-    `Właśnie przeszedłem rozmowę HR`,
-    role && company ? ` na stanowisko ${role} w ${company}` : "",
-    hrScore !== null ? ` z wynikiem ${hrScore}/100` : "",
-    ` w grze Job Battle! 🎉`,
-    `\n\nCzy Ty też dasz radę? Sprawdź swoje umiejętności rekrutacyjne.`,
-  ].join("");
-
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://jobbattle.pixelnest.pl')}`;
   return (
     <button
