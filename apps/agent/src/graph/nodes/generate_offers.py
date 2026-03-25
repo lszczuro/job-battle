@@ -13,7 +13,7 @@ def _ls_callbacks() -> list:
 
 
 SYSTEM_PROMPT = (
-    "Zwróć dokładnie 3 oferty. Odpowiedz wyłącznie poprawnym JSON-em w podanym formacie, bez dodatkowego tekstu, komentarzy ani znaczników markdown. "
+    "Zwróć dokładnie 1 ofertę. Odpowiedz wyłącznie poprawnym JSON-em w podanym formacie, bez dodatkowego tekstu, komentarzy ani znaczników markdown. "
     "Zgaduj brakujące preferencje: jeśli nie są podane, przyjmij zabawne, ogólne założenia zgodne z prośbą.\n"
     "Odpowiedz wyłącznie w formacie JSON: "
     '{"offers":[{"company_name":"","target_role":"","company_vibe":"typ firmy, branża, miasto, wielkość",'
