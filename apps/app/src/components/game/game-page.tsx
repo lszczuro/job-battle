@@ -11,6 +11,7 @@ import type { OfferCard } from "@/components/offer-board/offer-card";
 import { OfferCardItem } from "@/components/offer-board/offer-card";
 import { HRChatHeader } from "./chat-header";
 import { GameResultScreen } from "./game-result-screen";
+import { CustomChatInput } from "./custom-chat-input";
 
 export function GamePage({ onRestart }: { onRestart: () => void }) {
   const { agent } = useAgent();
@@ -95,15 +96,14 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
           <div className="flex-1 min-h-0 overflow-hidden relative">
             <CopilotChat
               welcomeScreen={!gameStarted
-                ? ({ input }: { input: React.ReactNode }) => (
+                ? () => (
                     <WelcomeScreen
-                      input={input}
                       onSelectOffer={handleSelectOffer}
                       isSelecting={isSelecting}
                     />
                   )
                 : undefined}
-              input={{ disclaimer: () => null, className: "pb-4", textArea: { rows: 1, placeholder: gameStarted ? "Twoja odpowiedź..." : "Opisz stanowisko, o którym marzysz..." } }}
+              input={{ disclaimer: () => null, className: "!hidden" }}
             />
             {gameStarted && agent.messages.length === 0 && (
               <div
@@ -121,6 +121,7 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
               </div>
             )}
           </div>
+          <CustomChatInput placeholder={gameStarted ? "Twoja odpowiedź..." : "Wpisz stanowisko marzeń..."} />
         </div>
       </div>
 

@@ -46,12 +46,11 @@ export const PRESET_OFFERS: OfferCard[] = [
 ];
 
 interface WelcomeScreenProps {
-  input: React.ReactNode;
   onSelectOffer: (offer: OfferCard) => void;
   isSelecting: boolean;
 }
 
-export function WelcomeScreen({ input, onSelectOffer, isSelecting }: WelcomeScreenProps) {
+export function WelcomeScreen({ onSelectOffer, isSelecting }: WelcomeScreenProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto flex flex-col items-center px-4 py-5">
@@ -100,7 +99,6 @@ export function WelcomeScreen({ input, onSelectOffer, isSelecting }: WelcomeScre
         </p>
       </div>
 
-      {input}
     </div>
   );
 }
