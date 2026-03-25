@@ -103,7 +103,7 @@ export function GamePage({ onRestart }: { onRestart: () => void }) {
                     />
                   )
                 : undefined}
-              input={{ disclaimer: () => null, className: "pb-4", textArea: { rows: 1, placeholder: "Opisz stanowisko, o którym marzysz..." } }}
+              input={{ disclaimer: () => null, className: "pb-4", textArea: { rows: 1, placeholder: gameStarted ? "Twoja odpowiedź..." : "Opisz stanowisko, o którym marzysz..." } }}
             />
             {gameStarted && agent.messages.length === 0 && (
               <div
