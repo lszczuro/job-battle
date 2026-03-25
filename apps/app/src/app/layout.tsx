@@ -21,6 +21,13 @@ export const metadata: Metadata = {
     "job interview game",
     "humor rekrutacyjny",
   ],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/logo.png",
+  },
   robots: {
     index: true,
     follow: true,
@@ -29,6 +36,7 @@ export const metadata: Metadata = {
     title: "Job Battle – Przeżyj Absurdalną Rozmowę Rekrutacyjną z AI",
     description:
       "Gra, w której AI wcieli się w Twojego rekrutera. Odpowiadaj na absurdalne pytania, przetrwaj rozmowę i sprawdź, czy dostaniesz tę wymarzoną pracę.",
+    url: "https://jobbattle.pixelnest.pl",
     type: "website",
     locale: "pl_PL",
     siteName: "Job Battle",
@@ -40,6 +48,9 @@ export const metadata: Metadata = {
         alt: "Job Battle – Gra z absurdalną rozmową rekrutacyjną prowadzoną przez AI.",
       },
     ],
+  },
+  other: {
+    "og:logo": "https://jobbattle.pixelnest.pl/logo.png",
   },
   twitter: {
     card: "summary_large_image",
