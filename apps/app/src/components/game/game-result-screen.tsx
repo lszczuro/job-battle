@@ -14,8 +14,7 @@ function LinkedInShareButton({ state }: { state: Record<string, unknown> | null 
     `\n\nCzy Ty też dasz radę? Sprawdź swoje umiejętności rekrutacyjne.`,
   ].join("");
 
-  const linkedInUrl = `https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fjob-battle.example.com&title=Oferta%20pracy!&summary=${encodeURIComponent(shareText)}`;
-
+  const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://jobbattle.pixelnest.pl')}`;
   return (
     <button
       onClick={() => window.open(linkedInUrl, "_blank", "noopener,noreferrer")}
